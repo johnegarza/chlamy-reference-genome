@@ -9,6 +9,7 @@ class Edge:
 		avg_endpoint2 = (other_node.asm_start + other_node.asm_stop)/2
 		self.length = (avg_endpoint1 - avg_endpoint2)
 
+		#debugging
 		if(this_node.line_num == 673 or other_node.line_num == 673):
 			print(str(avg_endpoint1) + "\t" + str(avg_endpoint2) + "\t" + str(self.length))
 
