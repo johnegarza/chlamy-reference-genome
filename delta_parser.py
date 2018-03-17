@@ -93,7 +93,7 @@ with open(delta_file) as d_f:
 			ref_array.append((ref_start, ref_end)) #initialize arrays with new info
 
 			if(q_rev):
-				q_end = q_end-q_start
+				q_end = q_start - q_end
 				query_array.append((0, q_end))
 			else:
 				query_array.append((q_start, q_end))
