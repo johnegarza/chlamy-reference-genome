@@ -23,6 +23,7 @@ with open(delta_file) as d_f:
 	ref_end = 0   #probably not but I have bad habits from other languages
 	q_start = 0   #I'm used to Java scopes
 	q_end = 0
+	q_rev = False
 
 	for line in lines:
 
@@ -34,11 +35,26 @@ with open(delta_file) as d_f:
 			query_name = name_info[1]
 #			print("seq start- names")
 
-		elif (line[0].isdigit() and line[0] == "0"):
+		elif (line[0].isdigit() and line[0] == "0"): #marks end of an alignment block
 			
+			#to avoid writing multiple delta cases (see the else at the end of this if/elif/else block)
+			#when a query is reversed, all calculations are performed as if it were forward;
+			#here I map it back to reverse before dumping the data
+			if(q_rev):
+
+				for index, temp_q in enumerate(query_array):
+
+					mapped_tuple = ( q_start-temp_q[0] , q_start-temp_q[1] )
+					query_array[index] = mapped_tuple
+
 			for ref_algn in ref_array:
 				print(ref_algn, end=' ')
 			print("") #make a line break
+
+			#TODO only for debugging remove in production- if anyone else is reading this original dev is an idiot
+			if(q_rev):
+				print("OG q_end: " + str(q_end))
+
 			for q_algn in query_array:
 				print(q_algn, end=' ')
 			print("") #another line break in anticipation of the next set of alignments
@@ -54,15 +70,30 @@ with open(delta_file) as d_f:
 			q_start = int(a_info[2])
 			q_end = int(a_info[3])
 
+			#for later use- check to see if the query alignment is reversed or not
+			if(q_start > q_end):
+				q_rev = True
+			else:
+				q_rev = False
+
 			ref_array = []    #reset arrays; old info has been dumped in the above elif
 			query_array = []
 
 			ref_array.append((ref_start, ref_end)) #initialize arrays with new info
-			query_array.append((q_start, q_end))
+
+			if(q_rev):
+				query_array.append((0, (q_end-q_start)))
+			else:
+				query_array.append((q_start, q_end))
 #			print("seq start- alignment info >" + line.rstrip() + "<")
 
 			ref_tracker = ref_start
-			query_tracker = q_start
+
+			if(q_rev):
+				query_tracker = 0
+			else:
+				query_tracker = q_start
+
 			curr_list_index = 0
 
 		else: #this line contains delta info
