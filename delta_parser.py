@@ -42,9 +42,20 @@ with open(delta_file) as d_f:
 			#here I map it back to reverse before dumping the data
 			if(q_rev):
 
+				q_len_DEBUG_REMOVE = len(query_array) - 1
+
 				for index, temp_q in enumerate(query_array):
 
+					if(index == q_len_DEBUG_REMOVE):
+						print("-----------------FINAL TEMP TUPLE---------------")
+						print(temp_q)
+
 					mapped_tuple = ( q_start-temp_q[0] , q_start-temp_q[1] )
+
+					if(index == q_len_DEBUG_REMOVE):
+						print("----------------FINAL NEW TUPLE----------------")
+						print(mapped_tuple)
+
 					query_array[index] = mapped_tuple
 
 			for ref_algn in ref_array:
@@ -82,7 +93,8 @@ with open(delta_file) as d_f:
 			ref_array.append((ref_start, ref_end)) #initialize arrays with new info
 
 			if(q_rev):
-				query_array.append((0, (q_end-q_start)))
+				q_end = q_end-q_start
+				query_array.append((0, q_end))
 			else:
 				query_array.append((q_start, q_end))
 #			print("seq start- alignment info >" + line.rstrip() + "<")
