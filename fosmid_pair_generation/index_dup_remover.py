@@ -20,8 +20,9 @@ with open(fosmid_pairs) as pairs:
 		line2 = int(pair[9])
 
 		if (line1 != line2):
-			
-			print(pair[0] + "\t" + str(pair[1]) + "\t" + str(pair[2]) + "\t" + pair[3] + "\t" + str(pair[4]) + "\t" + pair[5] + "\t" + str(pair[6]) + "\t" + str(pair[7]) + "\t" + pair[8] + "\t" + str(pair[9]))
-
+			info = []
+			for x in range(10):
+				info.append(str(pair[x]))
+			print("\t".join(info))
 
 
