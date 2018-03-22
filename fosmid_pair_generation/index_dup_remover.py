@@ -20,9 +20,6 @@ with open(fosmid_pairs) as pairs:
 		line2 = int(pair[9])
 
 		if (line1 != line2):
-			info = []
-			for x in range(10):
-				info.append(str(pair[x]))
-			print("\t".join(info))
+			print("\t".join(pair))
 
 
