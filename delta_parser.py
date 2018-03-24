@@ -42,29 +42,14 @@ with open(delta_file) as d_f:
 			#here I map it back to reverse before dumping the data
 			if(q_rev):
 
-				q_len_DEBUG_REMOVE = len(query_array) - 1
-
 				for index, temp_q in enumerate(query_array):
 
-					if(index == q_len_DEBUG_REMOVE):
-						print("-----------------FINAL TEMP TUPLE---------------")
-						print(temp_q)
-
 					mapped_tuple = ( q_start-temp_q[0] , q_start-temp_q[1] )
-
-					if(index == q_len_DEBUG_REMOVE):
-						print("----------------FINAL NEW TUPLE----------------")
-						print(mapped_tuple)
-
 					query_array[index] = mapped_tuple
 
 			for ref_algn in ref_array:
 				print(ref_algn, end=' ')
 			print("") #make a line break
-
-			#TODO only for debugging remove in production- if anyone else is reading this original dev is an idiot
-			if(q_rev):
-				print("OG q_end: " + str(q_end))
 
 			for q_algn in query_array:
 				print(q_algn, end=' ')
