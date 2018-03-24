@@ -1,12 +1,11 @@
 from __future__ import print_function #support python3 style print function, allowing me to change default terminal \n behavior
-import sys, os, csv, re
+import sys, os, csv, re, argparse
 
-if len(sys.argv) < 2:
-	sys.exit("Usage: %s delta_file" % sys.argv[0])
-if not os.path.exists(sys.argv[1]):
-	sys.exit("Error: File '%s' not found" % sys.argv[1])
+parser = argparse.ArgumentParser(description='parses a delta file into a format that can be used to map ref coordinates to query coordinates')
+parser.add_argument('delta_file', metavar='*.delta', help='a delta file produced by nucmer')
+args = parser.parse_args()
 
-delta_file = sys.argv[1]
+delta_file = args.delta_file
 delta_regex = re.compile(r"^-?\d+$")
 
 with open(delta_file) as d_f:
@@ -15,6 +14,7 @@ with open(delta_file) as d_f:
 	del lines[:2] #delete the first 2 lines in the lines list, which are just generic info
 	#saves me writing a case in my if-elif-else block just to handle the first 2 lines of the file
 
+	#TODO some of these can be removed
 	ref_name = "you shouldn't be able to read this"
 	query_name = "you shouldn't be able to read this either"
 	ref_array = []
