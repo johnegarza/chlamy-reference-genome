@@ -1,5 +1,9 @@
 from __future__ import print_function #support python3 style print function, allowing me to change default terminal \n behavior
 import sys, os, csv, re, argparse
+from mapper_helper import RefMapper
+from collections import defaultdict
+
+alignments = defaultdict(RefMapper)
 
 parser = argparse.ArgumentParser(description='parses a delta file into a format that can be used to map ref coordinates to query coordinates')
 parser.add_argument('delta_file', metavar='*.delta', help='a delta file produced by nucmer')
@@ -37,6 +41,7 @@ with open(delta_file) as d_f:
 
 		elif (line[0].isdigit() and line[0] == "0"): #marks end of an alignment block
 			
+
 			#to avoid writing multiple delta cases (see the else at the end of this if/elif/else block)
 			#when a query is reversed, all calculations are performed as if it were forward;
 			#here I map it back to reverse before dumping the data
@@ -47,6 +52,9 @@ with open(delta_file) as d_f:
 					mapped_tuple = ( q_start-temp_q[0] , q_start-temp_q[1] )
 					query_array[index] = mapped_tuple
 
+			#TODO most of the chunk between here and the next todo was for debugging purposes
+			#during development; this portion will be removed when the final script is complete
+			'''
 			for ref_algn in ref_array:
 				print(ref_algn, end=' ')
 			print("") #make a line break
@@ -56,6 +64,10 @@ with open(delta_file) as d_f:
 			print("") #another line break in anticipation of the next set of alignments
 
 #			print("seq end")
+			'''
+			#TODO after implementing the defaultdict of RefMappers, the above chunk of code will be removed
+
+			alignments[ref_name].update(ref_array, query_array, query_name)
 
 		elif( delta_regex.search(line) is None): #beginning of alignment block, in the format
 			
@@ -72,7 +84,7 @@ with open(delta_file) as d_f:
 			else:
 				q_rev = False
 
-			ref_array = []    #reset arrays; old info has been dumped in the above elif
+			ref_array = []    #reset arrays; old info has been printed in the above elif
 			query_array = []
 
 			ref_array.append((ref_start, ref_end)) #initialize arrays with new info
@@ -134,7 +146,8 @@ with open(delta_file) as d_f:
 				query_array.append( (query_tracker + abs_delta, q_end) )
 
 
-
-
+for key in alignments:
+	print("---------------" + str(key) + "---------------")
+	print(str(alignments[key]))
 
 
