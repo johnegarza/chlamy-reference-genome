@@ -13,6 +13,7 @@ class RefMapper:
 
 		#TODO find a more effecient solution, or add in an option to disable this at the cost of increased computation time
 		#reduces sort() time at the cost of memory; may be rebalanced in the future
+		#actually, may be able to refactor the entire class to only need this list, and none of the 3 preceding ones
 		self.sort_amortizer = []
 
 	def update(self, ref_coord_list, query_coord_list, q_name):
@@ -26,8 +27,6 @@ class RefMapper:
 		
 		#self.sort()
 		for index, name in enumerate(self.query_names):
-
-			print("----------------------------" + str(index) + "----------------------")
 
 			print(str(name))
 			print(self.ref_coords[index])
