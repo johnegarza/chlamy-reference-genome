@@ -37,10 +37,10 @@ class RefMapper:
 	#query coordinates and names are reordered along with it, preserving the mappings
 	def sort(self):
 		
-		#0th element of each tuple in the list, which is a list of ref coords
+		#0th element of each tuple in the list is a list of ref coords
 		#0th element of a ref coords list is a tuple indicating the first alignment block
 		#0th element of that tuple is the start coordinate of this entire list; since these are always
-		#increaing, sorting by this value allows us to reconstruct the other 3 instance variables in the
+		#increasing, sorting by this value allows us to reconstruct the other 3 instance variables in the
 		#sorted order described by the comments above this method's declaration
 		self.sort_amortizer.sort(key = lambda triple : triple[0][0][0])
 
@@ -53,6 +53,24 @@ class RefMapper:
 			self.query_coords.append(triple[1])
 			self.query_names.append(triple[2])
 
+	def locate(self, left_coord, right_coord, line_num, num):
 
+		list_index = -1
+		for block_index, block in enumerate(self.ref_coords):
+
+			#TODO remove int cast in final version of script, after all testing is complete
+			#casting in order to make this explicitly fail while still under development, since in python 2.x,
+			#comparing a str and int does not throw an error- it evaluates with no error and moves on
+			if int(block[0][0]) <= int(left_coord):
+				#list_index = block_index
+				last_index = block[len(block)-1][1]
+				if int(last_index) >= int(right_coord):
+					#the fosmid end aligns to a continuous alignment block
+					list_index = block_index
+					break
+
+		if (list_index == -1):
+			#it was never updated
+			print str(line_num) + "." + str(num) + " has no match"
 
 

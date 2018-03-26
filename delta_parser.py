@@ -7,9 +7,12 @@ alignments = defaultdict(RefMapper)
 
 parser = argparse.ArgumentParser(description='parses a delta file into a format that can be used to map ref coordinates to query coordinates')
 parser.add_argument('delta_file', metavar='*.delta', help='a delta file produced by nucmer')
+#TODO design/document a format for this fosmid file
+parser.add_argument('fosmids', metavar='fosmids.tsv', help = 'a fosmid paired end file')
 args = parser.parse_args()
 
 delta_file = args.delta_file
+fosmid_file = args.fosmids
 delta_regex = re.compile(r"^-?\d+$")
 
 with open(delta_file) as d_f:
@@ -35,7 +38,7 @@ with open(delta_file) as d_f:
 
 		if (line[0] == ">"): #the beginning of a seq, in the format >ref_name query_name ref_length query_length
 			name_info = line.split()
-			ref_name = name_info[0]
+			ref_name = name_info[0].lstrip(">")
 			query_name = name_info[1]
 #			print("seq start- names")
 
@@ -145,9 +148,29 @@ with open(delta_file) as d_f:
 				query_array.append( (query_tracker, query_tracker + (abs_delta - 2)) )
 				query_array.append( (query_tracker + abs_delta, q_end) )
 
-
+'''
 for key in alignments:
 	print("---------------" + str(key) + "---------------")
 	print(str(alignments[key]))
+'''
+
+with open(fosmid_file) as f_f:
+	lines = f_f.readlines()
+	for index, line in enumerate(lines):
+		line = line.split("\t")
+
+		right_name = str(line[0])
+		right_end_start = int(line[1])
+		right_end_stop = int(line[2])
+
+		left_name = str(line[5])
+		left_end_start = int(line[6])
+		left_end_stop = int(line[7])
+
+		alignments[right_name].locate(right_end_start, right_end_stop, index, 0)
+		alignments[left_name].locate(left_end_start, left_end_stop, index, 1)
+
+		
+
 
 
