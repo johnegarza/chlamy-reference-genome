@@ -32,7 +32,7 @@ class RefMapper:
 			print(str(name))
 			print(self.ref_coords[index])
 			print(self.query_coords[index])
-			return "" #here because __str__ is required to return a string
+		return "" #here because __str__ is required to return a string
 
 	#this method sorts the reference coordinates list in ascending order
 	#query coordinates and names are reordered along with it, preserving the mappings
