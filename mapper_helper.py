@@ -24,8 +24,10 @@ class RefMapper:
 
 	def __str__(self):
 		
-		self.sort()
+		#self.sort()
 		for index, name in enumerate(self.query_names):
+
+			print("----------------------------" + str(index) + "----------------------")
 
 			print(str(name))
 			print(self.ref_coords[index])
