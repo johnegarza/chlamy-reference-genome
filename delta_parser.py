@@ -163,9 +163,9 @@ with open(fosmid_file) as f_f:
 		right_end_start = int(line[1])
 		right_end_stop = int(line[2])
 
-		left_name = str(line[5])
-		left_end_start = int(line[6])
-		left_end_stop = int(line[7])
+		left_name = str(line[4])
+		left_end_start = int(line[5])
+		left_end_stop = int(line[6])
 
 		alignments[right_name].locate(right_end_start, right_end_stop, index, 0)
 		alignments[left_name].locate(left_end_start, left_end_stop, index, 1)
