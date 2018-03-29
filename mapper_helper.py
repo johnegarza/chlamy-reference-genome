@@ -53,7 +53,9 @@ class RefMapper:
 			self.query_coords.append(triple[1])
 			self.query_names.append(triple[2])
 
-	def locate(self, left_coord, right_coord, line_num, num):
+	#returns a 5-tuple: boolean for whether or not the input coordinates were successfully mapped, 
+	#input left coord, input right coord, mapped scaffold name, mapped left coord, mapped right coord
+	def map(self, left_coord, right_coord, line_num, num):
 
 		list_index = -1
 		for block_index, block in enumerate(self.ref_coords):
@@ -69,8 +71,51 @@ class RefMapper:
 					list_index = block_index
 					break
 
+		#TODO next 3 return statements are essentially filters; need to decide if these should silently
+		#fail or not- data on which ends could not be used may be useful
 		if (list_index == -1):
 			#it was never updated
-			print str(line_num) + "." + str(num) + " has no match"
+#			print str(line_num) + "." + str(num) + " has no match"
+			return (False, -1, -1, "", -1, -1)
+
+		
+		left_tuple_index = -1
+		right_tuple_index = -1
+		for tuple_index, coord_tuple in enumerate(self.ref_coords[list_index]):
+			if ((coord_tuple[0] <= left_coord) and (coord_tuple[1] >= left_coord)):
+				left_tuple_index = tuple_index
+			if ((coord_tuple[0] <= right_coord) and (coord_tuple[1] >= right_coord)):
+				right_tuple_index = tuple_index
+
+		if ( (left_tuple_index == -1) or (right_tuple_index == -1) or (left_tuple_index > right_tuple_index) ):
+			
+			#print( "left coord: " + str(left_coord) + " | right coord: " + str(right_coord) )
+			#print( "left index: " + str(left_tuple_index) + " | right index: " + str(right_tuple_index) )
+			#print(self.ref_coords[list_index])
+			#print(self.query_coords[list_index])
+			return (False, -1, -1, "", -1, -1)
+
+		left_dist = left_coord - int(self.ref_coords[list_index][left_tuple_index][0])
+		right_dist = right_coord - int(self.ref_coords[list_index][right_tuple_index][0])
+
+		#check if the query is aligned forward or reverse
+		if ( int(self.query_coords[list_index][left_tuple_index][0]) < int(self.query_coords[list_index][left_tuple_index][0]) ):
+			newLeft = int(self.query_coords[list_index][left_tuple_index][0]) + left_dist
+			newRight = int(self.query_coords[list_index][right_tuple_index][0]) + right_dist
+		else:
+			newLeft = int(self.query_coords[list_index][left_tuple_index][0]) - left_dist
+			newRight = int(self.query_coords[list_index][right_tuple_index][0]) - right_dist
+
+
+		old_dist = right_coord - left_coord
+		new_dist = abs(newLeft - newRight)
+
+		if ( abs(new_dist - old_dist) > 20 ):
+			return (False, -1, -1, "", -1, -1)
+			#print( str(left_coord) + "\t" + str(right_coord) + "\t" + str(old_dist) )
+			#print( str(newLeft) + "\t" + str(newRight) + "\t" + str(new_dist) )
+
+		return (True, left_coord, right_coord, self.query_names[list_index], newLeft, newRight)
+
 
 
