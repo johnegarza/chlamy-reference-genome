@@ -49,8 +49,9 @@ with open(fosmid_pairs) as pairs:
 
 
 		if ( (end1_line != 0) and (end2_line != 0) ):
-			
+			pass
+			#print(pair[0] + "\t" + str(pair[1]) + "\t" + str(pair[2]) + "\t" + pair[3] + "\t" + str(end1_line) + "\t" + str(pair[4]) + "\t" + str(pair[5]) + "\t" + pair[6] + "\t" + pair[7] + "\t" + str(end2_line))
+
+		else:
 			print(pair[0] + "\t" + str(pair[1]) + "\t" + str(pair[2]) + "\t" + pair[3] + "\t" + str(end1_line) + "\t" + str(pair[4]) + "\t" + str(pair[5]) + "\t" + pair[6] + "\t" + pair[7] + "\t" + str(end2_line))
-
-
 

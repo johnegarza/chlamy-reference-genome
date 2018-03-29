@@ -53,7 +53,9 @@ class RefMapper:
 			self.query_coords.append(triple[1])
 			self.query_names.append(triple[2])
 
-	def locate(self, left_coord, right_coord, line_num, num):
+	#returns a 5-tuple: boolean for whether or not the input coordinates were successfully mapped, 
+	#input left coord, input right coord, mapped scaffold name, mapped left coord, mapped right coord
+	def map(self, left_coord, right_coord, line_num, num):
 
 		list_index = -1
 		for block_index, block in enumerate(self.ref_coords):
@@ -74,7 +76,7 @@ class RefMapper:
 		if (list_index == -1):
 			#it was never updated
 #			print str(line_num) + "." + str(num) + " has no match"
-			return
+			return (False, -1, -1, "", -1, -1)
 
 		
 		left_tuple_index = -1
@@ -91,7 +93,7 @@ class RefMapper:
 			#print( "left index: " + str(left_tuple_index) + " | right index: " + str(right_tuple_index) )
 			#print(self.ref_coords[list_index])
 			#print(self.query_coords[list_index])
-			return
+			return (False, -1, -1, "", -1, -1)
 
 		left_dist = left_coord - int(self.ref_coords[list_index][left_tuple_index][0])
 		right_dist = right_coord - int(self.ref_coords[list_index][right_tuple_index][0])
@@ -109,9 +111,11 @@ class RefMapper:
 		new_dist = abs(newLeft - newRight)
 
 		if ( abs(new_dist - old_dist) > 20 ):
-			return
+			return (False, -1, -1, "", -1, -1)
 			#print( str(left_coord) + "\t" + str(right_coord) + "\t" + str(old_dist) )
 			#print( str(newLeft) + "\t" + str(newRight) + "\t" + str(new_dist) )
+
+		return (True, left_coord, right_coord, self.query_names[list_index], newLeft, newRight)
 
 
 
