@@ -170,7 +170,7 @@ with open(fosmid_file) as f_f:
 		left_tuple = alignments[left_name].map(left_end_start, left_end_stop, index, 0)
 		right_tuple = alignments[right_name].map(right_end_start, right_end_stop, index, 1)
 
-		if( left_tuple[0] and right_tuple[1] ):
+		if( left_tuple[0] and right_tuple[0] ):
 			ans = []
 			ans.append(left_name)
 			ans.extend( [str(x) for x in left_tuple[1:]] )
