@@ -28,7 +28,7 @@ class Node:
 	def tests(self):
 		for edge in self.edges:
 
-			if (self == edge.this_node):
+			if (self is edge.this_node):
 				assert(self.ref_start <= edge.this_ref_start)
 				assert(self.ref_stop >= edge.this_ref_end)
 				#assembly alignments may be in reverse order
