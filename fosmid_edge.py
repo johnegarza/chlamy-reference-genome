@@ -1,18 +1,22 @@
 class Edge:
 
-	def __init__(self, this_node, other_node):
+	def __init__(self, this_node, other_node, t_r_s, t_r_e, t_a_s, t_a_e, o_r_s, o_r_e, o_a_s, o_a_e):
 
 		self.this_node = this_node
 		self.other_node = other_node
 
-		avg_endpoint1 = (this_node.asm_start + this_node.asm_stop)/2
-		avg_endpoint2 = (other_node.asm_start + other_node.asm_stop)/2
-		self.length = (avg_endpoint1 - avg_endpoint2)
+		self.this_ref_start = t_r_s
+		self.this_ref_end = t_r_e
+		self.this_asm_start = t_a_s
+		self.this_asm_end = t_a_e
+		self.other_ref_start = o_r_s
+		self.other_ref_end = o_r_e
+		self.other_asm_start = o_a_s
+		self.other_asm_end = o_a_e
 
-		#debugging
-		if(this_node.line_num == 673 or other_node.line_num == 673):
-			print(str(avg_endpoint1) + "\t" + str(avg_endpoint2) + "\t" + str(self.length))
-
+		start_avg = (self.this_asm_start + self.this_asm_end)/2
+		stop_avg = (self.other_asm_start + self.other_asm_end)/2
+		self.length = abs( start_avg-stop_avg )
 
 		if (self.this_node.asm_name != self.other_node.asm_name):
 			self.weight = -10
@@ -22,6 +26,7 @@ class Edge:
 			self.weight = 10
 
 
+	#deprecated?
 	def printe(self, curr_node):
 		
 		if(self.this_node.line_num == curr_node.line_num):

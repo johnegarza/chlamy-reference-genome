@@ -101,17 +101,32 @@ with open(fosmid_pairs) as f_p:
 
 	for pair in pair_data:
 
-		endpoint1 = int(pair[4])
-		endpoint2 = int(pair[9])
 
-		node1 = line_indexed_nodes[endpoint1 - 1]
-		node2 = line_indexed_nodes[endpoint2 - 1]
+		left_ref_start = int(pair[1])
+		left_ref_stop = int(pair[2])
+		left_asm_start = int(pair[4])
+		left_asm_stop = int(pair[5])
+		left_block_line = int(pair[7])
+
+		right_ref_start = int(pair[9])
+		right_ref_stop = int(pair[10])
+		right_asm_start = int(pair[12])
+		right_asm_stop = int(pair[13])
+		right_block_line = int(pair[15])
+
+
+		node1 = line_indexed_nodes[left_block_line - 1]
+		node2 = line_indexed_nodes[right_block_line - 1]
 
 		#print(str(endpoint1) + "\t" + str(node1.line_num))
 
-		edge = Edge(node1, node2)
+		edge = Edge(node1, node2, left_ref_start, left_ref_stop, left_asm_start, left_asm_stop, right_ref_start, right_ref_stop, right_asm_start, right_asm_stop)
 		node1.edges.append(edge)
 		node2.edges.append(edge)
+
+#some basic tests
+for some_node in line_indexed_nodes:
+	some_node.tests()
 
 #for some_node in line_indexed_nodes:
 #	some_node.printn()

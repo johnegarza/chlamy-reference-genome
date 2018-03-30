@@ -24,4 +24,30 @@ class Node:
 		print(str(self.line_num))
 
 #	def __str__(self):
-		
+
+	def tests(self):
+		for edge in self.edges:
+
+			if (self == edge.this_node):
+				assert(self.ref_start <= edge.this_ref_start)
+				assert(self.ref_stop >= edge.this_ref_end)
+				#assembly alignments may be in reverse order
+				block_asm_start = min(self.asm_start, self.asm_stop)
+				block_asm_stop = max(self.asm_start, self.asm_stop)
+				edge_asm_start = min(edge.this_asm_start, edge.this_asm_end)
+				edge_asm_stop = max(edge.this_asm_start, edge.this_asm_end)
+				assert(block_asm_start <= edge_asm_start)
+				assert(block_asm_stop >= edge_asm_stop)
+			else:
+				assert(self.ref_start <= edge.other_ref_start)
+				assert(self.ref_stop >= edge.other_ref_end)
+				#assembly alignments may be in reverse order
+				block_asm_start = min(self.asm_start, self.asm_stop)
+				block_asm_stop = max(self.asm_start, self.asm_stop)
+				edge_asm_start = min(edge.other_asm_start, edge.other_asm_end)
+				edge_asm_stop = max(edge.other_asm_start, edge.other_asm_end)
+				assert(block_asm_start <= edge_asm_start)
+				assert(block_asm_stop >= edge_asm_stop)
+				
+
+
