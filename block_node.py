@@ -23,31 +23,69 @@ class Node:
 	def printn(self):
 		print(str(self.line_num))
 
-#	def __str__(self):
+	def __str__(self):
+		ans = []
+		ans.append(str(self.line_num))
+		ans.append(self.ref_name)
+		ans.append(str(self.ref_start))
+		ans.append(str(self.ref_stop))
+		ans.append(self.asm_name)
+		ans.append(str(self.asm_start))
+		ans.append(str(self.asm_stop))
+		return "\t".join(ans)
+
+	def print_surround_nodes(self):
+		prevN = "No prev node"
+		nextN = "No next node"
+		if self.prev is not None:
+			prevN = str(self.prev)
+		if self.next is not None:
+			nextN = str(self.next)
+		print(prevN)
+		print(str(self))
+		print(nextN)
+
 
 	def tests(self):
+
+		print(str(self))
+		debug_print = False
+
 		for edge in self.edges:
 
+			debug_print = False
+
 			if (self is edge.this_node):
-				assert(self.ref_start <= edge.this_ref_start)
-				assert(self.ref_stop >= edge.this_ref_end)
+#				if not(self.ref_start <= int(edge.this_ref_start)):
+#					debug_print = True
+#				if not(self.ref_stop >= int(edge.this_ref_end)):
+#					debug_print = True
 				#assembly alignments may be in reverse order
 				block_asm_start = min(self.asm_start, self.asm_stop)
 				block_asm_stop = max(self.asm_start, self.asm_stop)
 				edge_asm_start = min(edge.this_asm_start, edge.this_asm_end)
 				edge_asm_stop = max(edge.this_asm_start, edge.this_asm_end)
-				assert(block_asm_start <= edge_asm_start)
-				assert(block_asm_stop >= edge_asm_stop)
-			else:
-				assert(self.ref_start <= edge.other_ref_start)
-				assert(self.ref_stop >= edge.other_ref_end)
+				if not(block_asm_start <= edge_asm_start):
+					debug_print = True
+				if not(block_asm_stop >= edge_asm_stop):
+					debug_print = True
+
+			elif(self is edge.other_node):
+#				if not(self.ref_start <= int(edge.other_ref_start)):
+#					debug_print = True
+#				if not(self.ref_stop >= int(edge.other_ref_end)):
+#					debug_print = True
 				#assembly alignments may be in reverse order
 				block_asm_start = min(self.asm_start, self.asm_stop)
 				block_asm_stop = max(self.asm_start, self.asm_stop)
 				edge_asm_start = min(edge.other_asm_start, edge.other_asm_end)
 				edge_asm_stop = max(edge.other_asm_start, edge.other_asm_end)
-				assert(block_asm_start <= edge_asm_start)
-				assert(block_asm_stop >= edge_asm_stop)
-				
+				if not(block_asm_start <= edge_asm_start):
+					debug_print = True
+				if not(block_asm_stop >= edge_asm_stop):
+					debug_print = True
+			else:
+				print("NOT POSSIBLE")
 
-
+			if(debug_print):
+				print(edge.node_info(self))

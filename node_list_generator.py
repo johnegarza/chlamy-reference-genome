@@ -17,6 +17,7 @@ fosmid_pairs = sys.argv[2]
 
 contigs = [] #contains head node for each contig
 line_indexed_nodes = [] #to retrieve node at line n, call line_indexed_nodes[n-1]
+edges = [] #adding to help with active development
 
 with open(alignment_file) as a_f:
 	alignment_data = csv.reader(a_f, delimiter="\t")
@@ -123,10 +124,17 @@ with open(fosmid_pairs) as f_p:
 		edge = Edge(node1, node2, left_ref_start, left_ref_stop, left_asm_start, left_asm_stop, right_ref_start, right_ref_stop, right_asm_start, right_asm_stop)
 		node1.edges.append(edge)
 		node2.edges.append(edge)
+		edges.append(edge)
 
 #some basic tests
-for some_node in line_indexed_nodes:
-	some_node.tests()
+#for some_node in line_indexed_nodes:
+#	some_node.tests()
+
+for edge in edges:
+	if ( edge.weight == -10 ):
+		print("Edge between nodes in different scaffolds found")
+		edge.this_node.print_surround_nodes()
+		edge.other_node.print_surround_nodes()
 
 #for some_node in line_indexed_nodes:
 #	some_node.printn()

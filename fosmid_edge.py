@@ -20,11 +20,30 @@ class Edge:
 
 		if (self.this_node.asm_name != self.other_node.asm_name):
 			self.weight = -10
-		elif ( (abs(self.length) < 35000) or (abs(self.length) > 40000) ):
+		elif ( (self.length < 35000) or (self.length > 40000) ):
 			self.weight = 5
 		else:
 			self.weight = 10
 
+	#called from tests() function in block_node.py
+	def node_info(self, node):
+		ans = []
+		if(node is self.this_node):
+			ans.append(str(self.this_ref_start))
+			ans.append(str(self.this_ref_end))
+			ans.append(str(self.this_asm_start))
+			ans.append(str(self.this_asm_end))
+			return "\t".join(ans)
+		elif(node is self.other_node):
+			ans.append(str(self.other_ref_start))
+			ans.append(str(self.other_ref_end))
+			ans.append(str(self.other_asm_start))
+			ans.append(str(self.other_asm_end))
+			return "\t".join(ans)
+
+		else:
+			#this shouldn't happen, but for safety...
+			return "Bad node passed to edge"
 
 	#deprecated?
 	def printe(self, curr_node):
