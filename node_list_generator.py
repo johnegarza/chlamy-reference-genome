@@ -3,6 +3,7 @@ import sys, os, csv, re, fnmatch
 from block_node import Node
 from fosmid_edge import Edge
 import pickle
+import numpy #generating statistics to show dr dutcher
 
 if len(sys.argv) < 3:
 	sys.exit("Usage: %s block_list_tab_delimited indexed_fosmid_pairs" % sys.argv[0])
@@ -130,11 +131,51 @@ with open(fosmid_pairs) as f_p:
 #for some_node in line_indexed_nodes:
 #	some_node.tests()
 
-for edge in edges:
-	if ( edge.weight == -10 ):
-		print("Edge between nodes in different scaffolds found")
-		edge.this_node.print_surround_nodes()
-		edge.other_node.print_surround_nodes()
+#print(len(contigs))
+#print(len(line_indexed_nodes))
+#print(len(edges))
+#for edge in edges:
+#	if ( edge.weight == -10 ):
+#		print("hit")
+		#print("Edge between nodes in different scaffolds found")
+		#edge.this_node.print_surround_nodes()
+		#edge.other_node.print_surround_nodes()
+
+
+#for node in line_indexed_nodes:
+#	checker = False
+#	for edge in node.edges:
+#		if (edge.weight == -10):
+#			checker = True
+#			break
+#	if(checker):
+#		print("bad node")
+
+edge_nums = []
+bad_edge_nums = []
+for node in line_indexed_nodes:
+	edge_num = 0
+	bad_edge_num = 0
+	for edge in node.edges:
+		edge_num += 1
+		if(edge.weight == -10):
+			bad_edge_num += 1
+	edge_nums.append(edge_num)
+	bad_edge_nums.append(bad_edge_num)
+
+e = numpy.array(edge_nums)
+b = numpy.array(bad_edge_nums)
+print(numpy.mean(e))
+print(numpy.mean(b))
+print(numpy.std(e))
+print(numpy.std(b))
+
+print(numpy.median(e))
+print(numpy.median(b))
+print(max(edge_nums))
+print(max(bad_edge_nums))
+print(min(edge_nums))
+print(min(bad_edge_nums))
 
 #for some_node in line_indexed_nodes:
 #	some_node.printn()
