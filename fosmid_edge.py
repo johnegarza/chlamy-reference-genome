@@ -25,6 +25,14 @@ class Edge:
 		else:
 			self.weight = 10
 
+	def other_node_info(self, node):
+		if(node is self.this_node):
+			return str(self.other_node)
+		elif(node is self.other_node):
+			return str(self.this_node)
+		else: #shouldn't happen
+			return "Bad node"
+
 	#called from tests() function in block_node.py
 	def node_info(self, node):
 		ans = []

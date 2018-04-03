@@ -3,7 +3,7 @@ import sys, os, csv, re, fnmatch
 from block_node import Node
 from fosmid_edge import Edge
 import pickle
-import numpy #generating statistics to show dr dutcher
+import argparse
 
 if len(sys.argv) < 3:
 	sys.exit("Usage: %s block_list_tab_delimited indexed_fosmid_pairs" % sys.argv[0])
@@ -15,6 +15,17 @@ if not os.path.exists(sys.argv[2]):
 
 alignment_file = sys.argv[1] #tab_delim_results.tsv
 fosmid_pairs = sys.argv[2]
+
+'''
+parser = argparse.ArgumentParser(description='creates nodes and edges, then associates them together into a graph')
+parser.add_argument('alignments', metavar='*.tsv', help='a tab delimited reference to assembly alignment file')
+parser.add_argument('fosmids', metavar='*.tsv', help = 'a fosmid paired end file')
+args = parser.parse_args()
+
+alignment_file = args.alignments #tab_delim_results.tsv
+fosmid_pairs = args.fosmids
+'''
+
 
 contigs = [] #contains head node for each contig
 line_indexed_nodes = [] #to retrieve node at line n, call line_indexed_nodes[n-1]
@@ -151,31 +162,16 @@ with open(fosmid_pairs) as f_p:
 #	if(checker):
 #		print("bad node")
 
-edge_nums = []
-bad_edge_nums = []
 for node in line_indexed_nodes:
-	edge_num = 0
-	bad_edge_num = 0
+	node_print = True
 	for edge in node.edges:
-		edge_num += 1
-		if(edge.weight == -10):
-			bad_edge_num += 1
-	edge_nums.append(edge_num)
-	bad_edge_nums.append(bad_edge_num)
-
-e = numpy.array(edge_nums)
-b = numpy.array(bad_edge_nums)
-print(numpy.mean(e))
-print(numpy.mean(b))
-print(numpy.std(e))
-print(numpy.std(b))
-
-print(numpy.median(e))
-print(numpy.median(b))
-print(max(edge_nums))
-print(max(bad_edge_nums))
-print(min(edge_nums))
-print(min(bad_edge_nums))
+		if (edge.weight == -10):
+			if node_print:
+				print(str(node))
+				print("------")
+				node_print = False
+			print(edge.other_node_info(node))
+	print("")
 
 #for some_node in line_indexed_nodes:
 #	some_node.printn()
