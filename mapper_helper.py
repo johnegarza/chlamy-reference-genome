@@ -33,6 +33,35 @@ class RefMapper:
 			print(self.query_coords[index])
 		return "" #here because __str__ is required to return a string
 
+	def print_aligns(self, ref_name, line_num):
+
+		for q_index, q_name in enumerate(self.query_names):
+
+			#a for alignment?
+			#can enumerate through ref or query coords, just chose ref
+			for a_index, a_ref_block in enumerate(self.ref_coords[q_index]):
+
+				join_list = []
+
+				a_query_block = self.query_coords[q_index][a_index]
+
+				join_list.append(ref_name)
+				join_list.append(str(a_ref_block[0]))
+				join_list.append(str(a_ref_block[1]))
+				join_list.append(q_name)
+				join_list.append(str(a_query_block[0]))
+				join_list.append(str(a_query_block[1]))
+				join_list.append(str(line_num))
+
+				print("\t".join(join_list))
+
+				line_num += 1
+
+		return line_num
+
+
+			#print(str(name) + "\t" + str(self.ref_coords[index]) + "\t" + str(self.query_coords[index]))
+
 	#this method sorts the reference coordinates list in ascending order
 	#query coordinates and names are reordered along with it, preserving the mappings
 	def sort(self):

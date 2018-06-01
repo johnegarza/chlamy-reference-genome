@@ -139,8 +139,8 @@ with open(fosmid_pairs) as f_p:
 		edges.append(edge)
 
 #some basic tests
-#for some_node in line_indexed_nodes:
-#	some_node.tests()
+for some_node in line_indexed_nodes:
+	some_node.tests()
 
 #print(len(contigs))
 #print(len(line_indexed_nodes))
@@ -162,6 +162,7 @@ with open(fosmid_pairs) as f_p:
 #	if(checker):
 #		print("bad node")
 
+'''
 for node in line_indexed_nodes:
 	node_print = True
 	for edge in node.edges:
@@ -172,6 +173,7 @@ for node in line_indexed_nodes:
 				node_print = False
 			print(edge.other_node_info(node))
 	print("")
+'''
 
 #for some_node in line_indexed_nodes:
 #	some_node.printn()
