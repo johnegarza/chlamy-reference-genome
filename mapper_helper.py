@@ -82,7 +82,7 @@ class RefMapper:
 			self.query_coords.append(triple[1])
 			self.query_names.append(triple[2])
 
-	#returns a 5-tuple: boolean for whether or not the input coordinates were successfully mapped, 
+	#returns a 6-tuple: boolean for whether or not the input coordinates were successfully mapped, 
 	#input left coord, input right coord, mapped scaffold name, mapped left coord, mapped right coord
 	def map(self, left_coord, right_coord, line_num, num):
 

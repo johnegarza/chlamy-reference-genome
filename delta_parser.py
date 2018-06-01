@@ -9,10 +9,12 @@ parser = argparse.ArgumentParser(description='parses a delta file into a format 
 parser.add_argument('delta_file', metavar='*.delta', help='a delta file produced by nucmer')
 #TODO design/document a format for this fosmid file
 parser.add_argument('fosmids', metavar='fosmids.tsv', help = 'a fosmid paired end file')
+parser.add_argument('alignment_file', metavar='tab_delim_results', help='an alignment file from nucmer')
 args = parser.parse_args()
 
 delta_file = args.delta_file
 fosmid_file = args.fosmids
+block_file = args.alignment_file
 delta_regex = re.compile(r"^-?\d+$")
 
 with open(delta_file) as d_f:
@@ -163,23 +165,59 @@ with open(fosmid_file) as f_f:
 		left_end_start = int(line[1])
 		left_end_stop = int(line[2])
 
-		right_name = str(line[5])
-		right_end_start = int(line[6])
-		right_end_stop = int(line[7])
+		right_name = str(line[4])
+		right_end_start = int(line[5])
+		right_end_stop = int(line[6])
 
 		left_tuple = alignments[left_name].map(left_end_start, left_end_stop, index, 0)
 		right_tuple = alignments[right_name].map(right_end_start, right_end_stop, index, 1)
 
 		if( left_tuple[0] and right_tuple[0] ):
-			ans = []
-			ans.append(left_name)
-			ans.extend( [str(x) for x in left_tuple[1:]] )
-			ans.append( str(line[3]) )
-			ans.append( str(line[4]) )
-			ans.append( right_name )
-			ans.extend( [str(x) for x in right_tuple[1:]] )
-			ans.append( str(line[8]) )
-			ans.append( str(line[9]) )
-			print("\t".join(ans).strip())
+
+			###
+
+			#TODO min/max might only be needed on lines 197 and 198- double check and remove
+			#the 2 min and 2 max calls directly below if this is the case
+			end1_scaf = str(left_tuple[3])
+			end1_start = min( int(left_tuple[4]), int(left_tuple[5]) )
+			end1_stop = max( int(left_tuple[4]), int(left_tuple[5]) )
+			end2_scaf = str(right_tuple[3])
+			end2_start = min( int(right_tuple[4]), int(right_tuple[5]) )
+			end2_stop = max( int(right_tuple[4]), int(right_tuple[5]) )
+
+
+			with open(block_file) as blocks:
+				block_data = csv.reader(blocks, delimiter="\t")
+			
+				end1_line = 0
+				end2_line = 0
+
+				for block in block_data:
+
+					chrom = str(block[3])
+					start = min( int(block[4]), int(block[5]) )
+					stop = max( int(block[4]), int(block[5]) )
+					file_line = int(block[8])
+
+					if ( (end1_scaf == chrom) and (end1_start >= start) and (end1_stop <= stop) ):
+						end1_line = file_line
+
+					if ( (end2_scaf == chrom) and (end2_start >= start) and (end2_stop <= stop) ):
+						end2_line = file_line
+
+
+			if ( (end1_line != 0) and (end2_line != 0) ):
+			###
+
+				ans = []
+				ans.append(left_name)
+				ans.extend( [str(x) for x in left_tuple[1:]] )
+				ans.append( str(line[3]) ) #fosmid ID, VTP*
+				ans.append( str(end1_line) ) 
+				ans.append( right_name )
+				ans.extend( [str(x) for x in right_tuple[1:]] )
+				ans.append( str(line[7].strip()) ) #fosmid ID, VTP*
+				ans.append( str(end2_line) )
+				print("\t".join(ans).strip())
 
 
