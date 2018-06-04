@@ -139,8 +139,8 @@ with open(fosmid_pairs) as f_p:
 		edges.append(edge)
 
 #some basic tests
-for some_node in line_indexed_nodes:
-	some_node.tests()
+#for some_node in line_indexed_nodes:
+#	some_node.tests()
 
 #print(len(contigs))
 #print(len(line_indexed_nodes))
@@ -151,6 +151,15 @@ for some_node in line_indexed_nodes:
 		#print("Edge between nodes in different scaffolds found")
 		#edge.this_node.print_surround_nodes()
 		#edge.other_node.print_surround_nodes()
+
+#print(len(line_indexed_nodes))
+#for node in line_indexed_nodes:
+#	checker = True
+#	for edge in node.edges:
+#		if (edge.weight == -10):
+#			checker = False
+#	if(checker):
+#		print("good node")
 
 
 #for node in line_indexed_nodes:
