@@ -25,6 +25,27 @@ class Edge:
 		else:
 			self.weight = 10
 
+	def other_node_asm_name(self, node):
+		if node is self.this_node:
+			return self.this_node.asm_name
+		else:
+			return self.other_node.asm_name
+
+	def other_node_asm_coords(self, node):
+		if node is self.this_node:
+			return (self.this_asm_start, self.this_asm_end)
+		else:
+			return (self.other_asm_start, self.other_asm_end)
+
+	#originally just called other_node(), but that's a naming collision that causes a weird bug
+	def ret_other_node(self, node):
+		if node is self.this_node:
+			return self.this_node
+		elif node is self.other_node:
+			return self.other_node
+		else:
+			assert(1==2)
+
 	def other_node_info(self, node):
 		if(node is self.this_node):
 			return str(self.other_node)
@@ -52,6 +73,9 @@ class Edge:
 		else:
 			#this shouldn't happen, but for safety...
 			return "Bad node passed to edge"
+
+	def __str__(self):
+		return self.this_node.asm_name + "\t" + self.other_node.asm_name
 
 	#deprecated?
 	def printe(self, curr_node):

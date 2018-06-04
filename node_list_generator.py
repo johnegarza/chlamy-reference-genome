@@ -4,6 +4,7 @@ from block_node import Node
 from fosmid_edge import Edge
 import pickle
 import argparse
+import copy
 
 if len(sys.argv) < 3:
 	sys.exit("Usage: %s block_list_tab_delimited indexed_fosmid_pairs" % sys.argv[0])
@@ -195,6 +196,129 @@ for node in line_indexed_nodes:
 #with open('array_nodes.pkl', 'wb') as f2:
 #	pickle.dump(line_indexed_nodes, f, pickle.HIGHEST_PROTOCOL)
 
+sys.setrecursionlimit(10000) #TODO there has to be a better way to do this
+
+alg_list = copy.deepcopy(line_indexed_nodes)
+
+num_of_nodes = len(line_indexed_nodes)
+for num, node in enumerate(line_indexed_nodes):
+
+	#print( str(num+1) + " of " + str(num_of_nodes) )
+
+	bad_edges = set()
+	chunk_seeds = []
+	for edge in node.edges:
+		a_name = edge.other_node_asm_name(node)
+		if ( (edge.weight == -10) and (a_name not in bad_edges) ):
+#			print(edge)
+			bad_edges.add(a_name)
+			chunk_seeds.append(edge)
+
+	for seed in chunk_seeds:
+		a_name = seed.other_node_asm_name(node)
+		other = seed.ret_other_node(node)
+
+		new_start, new_stop = seed.other_node_asm_coords(node)
+		left_bound = new_stop
+		right_bound = new_start
+		new_edges = set() #to avoid accidental duplications, this is not a list
+
+		#build up a region (chunk) that groups all of the edges a particular, different contig
+		#this will be pulled out, formed into a new node, and placed elsewhere
+		for edge in node.edges:
+			temp_start, temp_stop = edge.other_node_asm_coords(node)
+			if( (edge.weight == -10) and (a_name == edge.other_node_asm_name(node) ) and (temp_start < left_bound) ):
+				new_start = temp_start
+				new_edges.add(edge)
+			if( (edge.weight == -10) and (a_name == edge.other_node_asm_name(node) ) and (temp_stop > right_bound) ):
+				new_stop = temp_stop
+				new_edges.add(edge)
+		new_edges.add(seed)
+
+		#create the new node
+		move_record = seed.this_node.asm_name + ">" + seed.other_node.asm_name
+		#move_record = node.asm_name + ">" + other.asm_name #record where it was and where it was placed
+		new_node = Node(-1, node.ref_name, node.ref_start, node.ref_stop, move_record, new_start, new_stop)
+
+		#transfer ownership of edges
+		for edge in new_edges:
+			node.edges.remove(edge)
+			new_node.edges.append(edge)
+			if (edge.this_node is node):
+				edge.this_node = new_node
+			elif (edge.other_node is node):
+				edge.other_node = new_node
+			else:
+				assert(3==4)
+
+		#place node- naive approach for gradual buildup of algorithm
+		#TODO TODO TODO TODO placement should be dynamic in later versions
+
+		#had to move the following statement to its current location
+		#since seed was being reassigned and thus failing the lookup (ret_other_node)
+		#other = seed.ret_other_node(node)
+		new_node.prev = other.prev
+		new_node.next = other
+		if(other.prev is not None):
+			other.prev.next = new_node
+		else:
+			#creating a new contig head, so update the contigs list
+			for index, contig in enumerate(contigs):
+				if contig is other:
+					contigs[index] = new_node
+
+		other.prev = new_node
+		
+		chunk_length = (new_stop - new_start) + 1
+
+		#adjust the stop coord of this node since we just pulled a chunk out
+		node.asm_stop = node.asm_stop - chunk_length
+
+		#adjust the node (and corresponding edge) assembly coords for all nodes in this contig following the altered one
+		iterator = node.next
+		while(iterator is not None):
+
+			iterator.asm_start = iterator.asm_start - chunk_length
+			iterator.asm_stop = iterator.asm_stop - chunk_length
+
+			for edge in iterator.edges:
+
+				if (edge.this_node is iterator):
+					edge.this_asm_start = edge.this_asm_start - chunk_length
+					edge.this_asm_end = edge.this_asm_end - chunk_length
+				else:
+					edge.other_asm_start = edge.other_asm_start - chunk_length
+					edge.other_asm_end = edge.other_asm_end - chunk_length
+
+			iterator = iterator.next
+
+		#adjust the nodes that come after the new node
+		iterator = new_node.next
+		#debugging = 0
+		while(iterator is not None):
+			#print(debugging)
+			#print(str(iterator))
+			iterator.asm_start = iterator.asm_start + chunk_length
+			iterator.asm_stop = iterator.asm_stop + chunk_length
+
+			for edge in iterator.edges:
+
+				if (edge.this_node is iterator):
+					edge.this_asm_start = edge.this_asm_start + chunk_length
+					edge.this_asm_end = edge.this_asm_end + chunk_length
+				else:
+					edge.other_asm_start = edge.other_asm_start + chunk_length
+					edge.other_asm_end = edge.other_asm_end + chunk_length
+
+			iterator = iterator.next
+			#debugging += 1
+		
+for cnum, contig_head in enumerate(contigs):
+	
+	iterator = contig_head
+	while(iterator is not None):
+		print( str(cnum) + "\t" + str(iterator) )
+		iterator = iterator.next
 
 
 
