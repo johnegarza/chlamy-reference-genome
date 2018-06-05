@@ -6,8 +6,15 @@ class ContigLocation:
 		self.left = left
 		self.right = right
 
-		self.low = min(left, right)
-		self.high = max(left, right)
+	def low(self):
+		return min(self.left, self.right)
+
+	def high(self):
+		return max(self.left, self.right)
+
+	def __str__(self):
+		return self.name + "\t" + str(self.left) + "\t" + str(self.right)
+
 
 	def shift(self, num):
 
@@ -15,3 +22,12 @@ class ContigLocation:
 		self.right = self.right + num
 		self.low = self.low + num
 		self.high = self.high + num
+
+	def midpoint(self):
+		return (self.left + self.right) / 2
+
+	def same_contig(self, otherCL):
+		return self.name == otherCL.name
+
+	def get_coords(self):
+		return (self.left, self.right)

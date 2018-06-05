@@ -1,24 +1,24 @@
+from contig_loc import ContigLocation
+
 class Edge:
 
 	def __init__(self, this_node, other_node, t_r_s, t_r_e, t_a_s, t_a_e, o_r_s, o_r_e, o_a_s, o_a_e):
 
-		self.this_node = this_node
-		self.other_node = other_node
+		#Endpoint 1
+		self.ref1 = ContigLocation("xxx", t_r_s, t_r_e)
+		self.asm1_original = ContigLocation("xxx", t_a_s, t_a_e)
+		self.asm1 = ContigLocation("xxx", t_a_s, t_a_e)
+		self.node1 = this_node
 
-		self.this_ref_start = t_r_s
-		self.this_ref_end = t_r_e
-		self.this_asm_start = t_a_s
-		self.this_asm_end = t_a_e
-		self.other_ref_start = o_r_s
-		self.other_ref_end = o_r_e
-		self.other_asm_start = o_a_s
-		self.other_asm_end = o_a_e
+		#Endpoint 2
+		self.ref2 = ContigLocation("xxx", o_r_s, o_r_e)
+		self.asm2_original = ContigLocation("xxx", o_a_s, o_a_e)
+		self.asm2 = ContigLocation("xxx", o_a_s, o_a_e)
+		self.node2 = other_node
 
-		start_avg = (self.this_asm_start + self.this_asm_end)/2
-		stop_avg = (self.other_asm_start + self.other_asm_end)/2
-		self.length = abs( start_avg-stop_avg )
+		self.length = abs ( asm1.midpoint() - asm2.midpoint() )
 
-		if (self.this_node.asm_name != self.other_node.asm_name):
+		if ( !asm1.same_contig(asm2) ):
 			self.weight = -10
 		elif ( (self.length < 35000) or (self.length > 40000) ):
 			self.weight = 5
@@ -26,33 +26,37 @@ class Edge:
 			self.weight = 10
 
 	def other_node_asm_name(self, node):
-		if node is self.this_node:
-			return self.this_node.asm_name
+		if node is self.node1:
+			return self.node2.asm.name
+		elif node is self.node2:
+			return self.node1.asm.name
 		else:
-			return self.other_node.asm_name
+			assert(1==2) #make this fail noticeably, since this shouldn't happen
 
 	def other_node_asm_coords(self, node):
-		if node is self.this_node:
-			return (self.this_asm_start, self.this_asm_end)
+		if node is self.node1:
+			return self.node2.asm.get_coords()
+		elif node is self.node2:
+			return self.node1.asm.get_coords()
 		else:
-			return (self.other_asm_start, self.other_asm_end)
+			assert(1==2)
 
 	#originally just called other_node(), but that's a naming collision that causes a weird bug
 	def ret_other_node(self, node):
-		if node is self.this_node:
-			return self.this_node
-		elif node is self.other_node:
-			return self.other_node
+		if node is self.node1:
+			return self.node2
+		elif node is self.node2
+			return self.node1
 		else:
 			assert(1==2)
 
 	def other_node_info(self, node):
-		if(node is self.this_node):
-			return str(self.other_node)
-		elif(node is self.other_node):
-			return str(self.this_node)
+		if(node is self.node1):
+			return str(self.node2)
+		elif(node is self.node2):
+			return str(self.node1)
 		else: #shouldn't happen
-			return "Bad node"
+			assert(1==2)
 
 	#called from tests() function in block_node.py
 	def node_info(self, node):
@@ -75,13 +79,6 @@ class Edge:
 			return "Bad node passed to edge"
 
 	def __str__(self):
-		return self.this_node.asm_name + "\t" + self.other_node.asm_name
+		return str(self.node1.asm) + "\t" + (self.node2.asm)
 
-	#deprecated?
-	def printe(self, curr_node):
-		
-		if(self.this_node.line_num == curr_node.line_num):
-			print("match to " + str(self.other_node.line_num) + " with weight " + str(self.weight) + "(" + str(abs(self.length)) + ")")
-		else:
-			print("match to " + str(self.this_node.line_num) + " with weight " + str(self.weight) + "(" + str(abs(self.length)) + ")")
 
