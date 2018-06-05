@@ -27,13 +27,14 @@ alignment_file = args.alignments #tab_delim_results.tsv
 fosmid_pairs = args.fosmids
 '''
 
-
 contigs = [] #contains head node for each contig
 line_indexed_nodes = [] #to retrieve node at line n, call line_indexed_nodes[n-1]
 edges = [] #adding to help with active development
 
 with open(alignment_file) as a_f:
 	alignment_data = csv.reader(a_f, delimiter="\t")
+
+	#TODO refactor to use Contig (upcoming) data structure, so don't need sentinel nodes
 
 	#initialize some dummy data so my script can dynamically begin construction from the 
 	#beginning of the file, instead of needing to hard code the initial case
@@ -78,6 +79,7 @@ with open(alignment_file) as a_f:
 
 			prev_scaf = asm_scaf
 			
+			#TODO isn't this just an else case
 			continue #work is done for this cycle, and thanks to python's scope (or lack thereof)
 				 #we can just skip to the next iteration of the loop
 
@@ -201,12 +203,14 @@ sys.setrecursionlimit(10000) #TODO there has to be a better way to do this
 alg_list = copy.deepcopy(line_indexed_nodes)
 
 num_of_nodes = len(line_indexed_nodes)
+
 for num, node in enumerate(line_indexed_nodes):
 
 	#print( str(num+1) + " of " + str(num_of_nodes) )
 
 	bad_edges = set()
 	chunk_seeds = []
+
 	for edge in node.edges:
 		a_name = edge.other_node_asm_name(node)
 		if ( (edge.weight == -10) and (a_name not in bad_edges) ):
@@ -223,7 +227,7 @@ for num, node in enumerate(line_indexed_nodes):
 		right_bound = new_start
 		new_edges = set() #to avoid accidental duplications, this is not a list
 
-		#build up a region (chunk) that groups all of the edges a particular, different contig
+		#build up a region (chunk) that groups all of the edges a to particular, different contig
 		#this will be pulled out, formed into a new node, and placed elsewhere
 		for edge in node.edges:
 			temp_start, temp_stop = edge.other_node_asm_coords(node)
@@ -236,18 +240,18 @@ for num, node in enumerate(line_indexed_nodes):
 		new_edges.add(seed)
 
 		#create the new node
-		move_record = seed.this_node.asm_name + ">" + seed.other_node.asm_name
+		move_record = seed.node1.asm.name + ">" + seed.node2.asm.name
 		#move_record = node.asm_name + ">" + other.asm_name #record where it was and where it was placed
-		new_node = Node(-1, node.ref_name, node.ref_start, node.ref_stop, move_record, new_start, new_stop)
+		new_node = Node(-1, node.ref.name, node.ref.left, node.ref.right, move_record, new_start, new_stop)
 
 		#transfer ownership of edges
 		for edge in new_edges:
 			node.edges.remove(edge)
 			new_node.edges.append(edge)
-			if (edge.this_node is node):
-				edge.this_node = new_node
-			elif (edge.other_node is node):
-				edge.other_node = new_node
+			if (edge.node1 is node):
+				edge.node1 = new_node
+			elif (edge.node2 is node):
+				edge.node2 = new_node
 			else:
 				assert(3==4)
 
@@ -259,13 +263,13 @@ for num, node in enumerate(line_indexed_nodes):
 		#other = seed.ret_other_node(node)
 		new_node.prev = other.prev
 		new_node.next = other
-		if(other.prev is not None):
+		if(other.prev is not None): #TODO and is not sentinel node
 			other.prev.next = new_node
 		else:
 			#creating a new contig head, so update the contigs list
 			for index, contig in enumerate(contigs):
 				if contig is other:
-					contigs[index] = new_node
+					contigs[index] = new_node #TODO forgot about sentinel nodes- this line does nothing
 
 		other.prev = new_node
 		
@@ -278,40 +282,45 @@ for num, node in enumerate(line_indexed_nodes):
 		iterator = node.next
 		while(iterator is not None):
 
-			iterator.asm_start = iterator.asm_start - chunk_length
-			iterator.asm_stop = iterator.asm_stop - chunk_length
+#			iterator.asm_start = iterator.asm_start - chunk_length
+#			iterator.asm_stop = iterator.asm_stop - chunk_length
+			#TODO further modify to use the CL shift() method once updates are complete- same for next 2 for loops
+			iterator.asm.left = iterator.asm.left - chunk_length
+			iterator.asm.right = iterator.asm.right - chunk_length
 
 			for edge in iterator.edges:
 
-				if (edge.this_node is iterator):
-					edge.this_asm_start = edge.this_asm_start - chunk_length
-					edge.this_asm_end = edge.this_asm_end - chunk_length
+				if (edge.node1 is iterator):
+#					edge.this_asm_start = edge.this_asm_start - chunk_length
+#					edge.this_asm_end = edge.this_asm_end - chunk_length
+					edge.asm1.left = edge.asm1.left - chunk_length
+					edge.asm1.right = edge.asm1.right - chunk_length
+				elif (edge.node2 is iterator):
+					edge.asm2.left = edge.asm2.left - chunk_length
+					edge.asm2.right = edge.asm2.right - chunk_length
 				else:
-					edge.other_asm_start = edge.other_asm_start - chunk_length
-					edge.other_asm_end = edge.other_asm_end - chunk_length
+					assert(1==2)
 
 			iterator = iterator.next
 
 		#adjust the nodes that come after the new node
 		iterator = new_node.next
-		#debugging = 0
 		while(iterator is not None):
-			#print(debugging)
-			#print(str(iterator))
-			iterator.asm_start = iterator.asm_start + chunk_length
-			iterator.asm_stop = iterator.asm_stop + chunk_length
+			iterator.asm.left = iterator.asm.left + chunk_length
+			iterator.asm.right = iterator.asm.right + chunk_length
 
 			for edge in iterator.edges:
 
-				if (edge.this_node is iterator):
-					edge.this_asm_start = edge.this_asm_start + chunk_length
-					edge.this_asm_end = edge.this_asm_end + chunk_length
+				if (edge.node1 is iterator):
+					edge.asm1.left = edge.asm1.left + chunk_length
+					edge.asm1.right = edge.asm1.right + chunk_length
+				elif (edge.node2 is iterator):
+					edge.asm2.left = edge.asm2.left + chunk_length
+					edge.asm2.right = edge.asm2.right + chunk_length
 				else:
-					edge.other_asm_start = edge.other_asm_start + chunk_length
-					edge.other_asm_end = edge.other_asm_end + chunk_length
+					assert(1==2)
 
 			iterator = iterator.next
-			#debugging += 1
 		
 for cnum, contig_head in enumerate(contigs):
 	

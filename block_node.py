@@ -16,6 +16,8 @@ class Node:
 
 		#since the final product should be a collection of nodes with at most one successor and one
 		#predecessor, it works well as a linked list
+
+		#TODO add these as parameters in the arguments list, with default values None
 		self.prev = None
 		self.next = None
 

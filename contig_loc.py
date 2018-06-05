@@ -15,13 +15,10 @@ class ContigLocation:
 	def __str__(self):
 		return self.name + "\t" + str(self.left) + "\t" + str(self.right)
 
-
 	def shift(self, num):
 
 		self.left = self.left + num
 		self.right = self.right + num
-		self.low = self.low + num
-		self.high = self.high + num
 
 	def midpoint(self):
 		return (self.left + self.right) / 2

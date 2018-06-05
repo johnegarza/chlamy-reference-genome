@@ -16,9 +16,9 @@ class Edge:
 		self.asm2 = ContigLocation("xxx", o_a_s, o_a_e)
 		self.node2 = other_node
 
-		self.length = abs ( asm1.midpoint() - asm2.midpoint() )
+		self.length = abs ( self.asm1.midpoint() - self.asm2.midpoint() )
 
-		if ( !asm1.same_contig(asm2) ):
+		if ( not self.asm1.same_contig(self.asm2) ):
 			self.weight = -10
 		elif ( (self.length < 35000) or (self.length > 40000) ):
 			self.weight = 5
@@ -45,7 +45,7 @@ class Edge:
 	def ret_other_node(self, node):
 		if node is self.node1:
 			return self.node2
-		elif node is self.node2
+		elif node is self.node2:
 			return self.node1
 		else:
 			assert(1==2)
