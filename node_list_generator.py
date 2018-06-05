@@ -98,19 +98,6 @@ with open(alignment_file) as a_f:
 	tail_node.prev = curr_node
 	curr_node.next = tail_node
 
-#for contig_head in contigs:
-#	curr = contig_head
-#	while(curr.next != None):
-#		curr.printn()
-#		curr = curr.next
-#	curr.printn() # print the tails
-#	print("switch")
-
-#line_indexed_nodes[500].printn()
-#line_indexed_nodes[1000].printn()
-#line_indexed_nodes[1500].printn()
-#line_indexed_nodes[2000].printn()
-
 with open(fosmid_pairs) as f_p:
 
 	pair_data = csv.reader(f_p, delimiter="\t")
@@ -140,69 +127,6 @@ with open(fosmid_pairs) as f_p:
 		node1.edges.append(edge)
 		node2.edges.append(edge)
 		edges.append(edge)
-
-#some basic tests
-#for some_node in line_indexed_nodes:
-#	some_node.tests()
-
-#print(len(contigs))
-#print(len(line_indexed_nodes))
-#print(len(edges))
-#for edge in edges:
-#	if ( edge.weight == -10 ):
-#		print("hit")
-		#print("Edge between nodes in different scaffolds found")
-		#edge.this_node.print_surround_nodes()
-		#edge.other_node.print_surround_nodes()
-
-#print(len(line_indexed_nodes))
-#for node in line_indexed_nodes:
-#	checker = True
-#	for edge in node.edges:
-#		if (edge.weight == -10):
-#			checker = False
-#	if(checker):
-#		print("good node")
-
-
-#for node in line_indexed_nodes:
-#	checker = False
-#	for edge in node.edges:
-#		if (edge.weight == -10):
-#			checker = True
-#			break
-#	if(checker):
-#		print("bad node")
-
-'''
-for node in line_indexed_nodes:
-	node_print = True
-	for edge in node.edges:
-		if (edge.weight == -10):
-			if node_print:
-				print(str(node))
-				print("------")
-				node_print = False
-			print(edge.other_node_info(node))
-	print("")
-'''
-
-#for some_node in line_indexed_nodes:
-#	some_node.printn()
-#	for some_edge in some_node.edges:
-#		some_edge.printe(some_node)
-#	print("")
-
-#with open('linked_nodes.pkl', 'wb') as f1:
-#	pickle.dump(contigs, f1, pickle.HIGHEST_PROTOCOL)
-#with open('array_nodes.pkl', 'wb') as f2:
-#	pickle.dump(line_indexed_nodes, f, pickle.HIGHEST_PROTOCOL)
-
-sys.setrecursionlimit(10000) #TODO there has to be a better way to do this
-
-alg_list = copy.deepcopy(line_indexed_nodes)
-
-num_of_nodes = len(line_indexed_nodes)
 
 for num, node in enumerate(line_indexed_nodes):
 
