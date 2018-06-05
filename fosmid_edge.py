@@ -25,24 +25,8 @@ class Edge:
 		else:
 			self.weight = 10
 
-	def other_node_asm_name(self, node):
-		if node is self.node1:
-			return self.node2.asm.name
-		elif node is self.node2:
-			return self.node1.asm.name
-		else:
-			assert(1==2) #make this fail noticeably, since this shouldn't happen
-
-	def other_node_asm_coords(self, node):
-		if node is self.node1:
-			return self.node2.asm.get_coords()
-		elif node is self.node2:
-			return self.node1.asm.get_coords()
-		else:
-			assert(1==2)
-
 	#originally just called other_node(), but that's a naming collision that causes a weird bug
-	def ret_other_node(self, node):
+	def opposite_node(self, node):
 		if node is self.node1:
 			return self.node2
 		elif node is self.node2:

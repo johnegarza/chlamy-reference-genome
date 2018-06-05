@@ -206,23 +206,21 @@ num_of_nodes = len(line_indexed_nodes)
 
 for num, node in enumerate(line_indexed_nodes):
 
-	#print( str(num+1) + " of " + str(num_of_nodes) )
-
 	bad_edges = set()
 	chunk_seeds = []
 
 	for edge in node.edges:
-		a_name = edge.other_node_asm_name(node)
+		a_name = edge.opposite_node(node).asm.name
 		if ( (edge.weight == -10) and (a_name not in bad_edges) ):
-#			print(edge)
 			bad_edges.add(a_name)
 			chunk_seeds.append(edge)
 
 	for seed in chunk_seeds:
-		a_name = seed.other_node_asm_name(node)
-		other = seed.ret_other_node(node)
 
-		new_start, new_stop = seed.other_node_asm_coords(node)
+		other = seed.opposite_node(node)
+		a_name = other.asm.name
+
+		new_start, new_stop = other.asm.get_coords()
 		left_bound = new_stop
 		right_bound = new_start
 		new_edges = set() #to avoid accidental duplications, this is not a list
@@ -230,11 +228,11 @@ for num, node in enumerate(line_indexed_nodes):
 		#build up a region (chunk) that groups all of the edges a to particular, different contig
 		#this will be pulled out, formed into a new node, and placed elsewhere
 		for edge in node.edges:
-			temp_start, temp_stop = edge.other_node_asm_coords(node)
-			if( (edge.weight == -10) and (a_name == edge.other_node_asm_name(node) ) and (temp_start < left_bound) ):
+			temp_start, temp_stop = edge.opposite_node(node).asm.get_coords()
+			if( (edge.weight == -10) and (a_name == edge.opposite_node(node).asm.name ) and (temp_start < left_bound) ):
 				new_start = temp_start
 				new_edges.add(edge)
-			if( (edge.weight == -10) and (a_name == edge.other_node_asm_name(node) ) and (temp_stop > right_bound) ):
+			if( (edge.weight == -10) and (a_name == edge.opposite_node(node).asm.name ) and (temp_stop > right_bound) ):
 				new_stop = temp_stop
 				new_edges.add(edge)
 		new_edges.add(seed)
@@ -282,13 +280,14 @@ for num, node in enumerate(line_indexed_nodes):
 		iterator = node.next
 		while(iterator is not None):
 
-#			iterator.asm_start = iterator.asm_start - chunk_length
-#			iterator.asm_stop = iterator.asm_stop - chunk_length
 			#TODO further modify to use the CL shift() method once updates are complete- same for next 2 for loops
-			iterator.asm.left = iterator.asm.left - chunk_length
-			iterator.asm.right = iterator.asm.right - chunk_length
+			#iterator.asm.left = iterator.asm.left - chunk_length
+			#iterator.asm.right = iterator.asm.right - chunk_length
+			iterator.asm.shift(-chunk_length)
 
 			for edge in iterator.edges:
+
+#				edge.opposite_node(iterator).
 
 				if (edge.node1 is iterator):
 #					edge.this_asm_start = edge.this_asm_start - chunk_length
