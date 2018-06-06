@@ -25,7 +25,14 @@ class Edge:
 		else:
 			self.weight = 10
 
-	#originally just called other_node(), but that's a naming collision that causes a weird bug
+	def edge_start(self, node):
+		if node is self.node1:
+			return self.asm1.left
+		elif node is self.node2:
+			return self.asm2.left
+		else:
+			assert(1==2)
+
 	def opposite_node(self, node):
 		if node is self.node1:
 			return self.node2

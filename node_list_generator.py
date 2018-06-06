@@ -124,8 +124,8 @@ with open(fosmid_pairs) as f_p:
 		#print(str(endpoint1) + "\t" + str(node1.line_num))
 
 		edge = Edge(node1, node2, left_ref_start, left_ref_stop, left_asm_start, left_asm_stop, right_ref_start, right_ref_stop, right_asm_start, right_asm_stop)
-		node1.edges.append(edge)
-		node2.edges.append(edge)
+		node1.add_edge(edge)
+		node2.add_edge(edge)
 		edges.append(edge)
 
 for num, node in enumerate(line_indexed_nodes):
@@ -133,7 +133,7 @@ for num, node in enumerate(line_indexed_nodes):
 	bad_edges = set()
 	chunk_seeds = []
 
-	for edge in node.edges:
+	for edge in node.get_edges():
 		a_name = edge.opposite_node(node).asm.name
 		if ( (edge.weight == -10) and (a_name not in bad_edges) ):
 			bad_edges.add(a_name)
@@ -151,7 +151,7 @@ for num, node in enumerate(line_indexed_nodes):
 
 		#build up a region (chunk) that groups all of the edges a to particular, different contig
 		#this will be pulled out, formed into a new node, and placed elsewhere
-		for edge in node.edges:
+		for edge in node.get_edges():
 			temp_start, temp_stop = edge.opposite_node(node).asm.get_coords()
 			if( (edge.weight == -10) and (a_name == edge.opposite_node(node).asm.name ) and (temp_start < left_bound) ):
 				new_start = temp_start
@@ -168,8 +168,8 @@ for num, node in enumerate(line_indexed_nodes):
 
 		#transfer ownership of edges
 		for edge in new_edges:
-			node.edges.remove(edge)
-			new_node.edges.append(edge)
+			node.remove_edge(edge)
+			new_node.add_edge(edge)
 			if (edge.node1 is node):
 				edge.node1 = new_node
 			elif (edge.node2 is node):
@@ -195,7 +195,7 @@ for num, node in enumerate(line_indexed_nodes):
 
 		other.prev = new_node
 		
-		chunk_length = (new_stop - new_start) + 1
+		chunk_length = abs(new_stop - new_start) + 1
 
 		#adjust the stop coord of this node since we just pulled a chunk out
 		node.asm_stop = node.asm_stop - chunk_length
@@ -204,25 +204,11 @@ for num, node in enumerate(line_indexed_nodes):
 		iterator = node.next
 		while(iterator is not None):
 
-			#TODO further modify to use the CL shift() method once updates are complete- same for next 2 for loops
-			#iterator.asm.left = iterator.asm.left - chunk_length
-			#iterator.asm.right = iterator.asm.right - chunk_length
 			iterator.asm.shift(-chunk_length)
 
-			for edge in iterator.edges:
+			for edge in iterator.get_edges():
 
-#				edge.opposite_node(iterator).
-
-				if (edge.node1 is iterator):
-#					edge.this_asm_start = edge.this_asm_start - chunk_length
-#					edge.this_asm_end = edge.this_asm_end - chunk_length
-					edge.asm1.left = edge.asm1.left - chunk_length
-					edge.asm1.right = edge.asm1.right - chunk_length
-				elif (edge.node2 is iterator):
-					edge.asm2.left = edge.asm2.left - chunk_length
-					edge.asm2.right = edge.asm2.right - chunk_length
-				else:
-					assert(1==2)
+				edge.opposite_node(iterator).asm.shift(-chunk_length)
 
 			iterator = iterator.next
 
@@ -232,16 +218,9 @@ for num, node in enumerate(line_indexed_nodes):
 			iterator.asm.left = iterator.asm.left + chunk_length
 			iterator.asm.right = iterator.asm.right + chunk_length
 
-			for edge in iterator.edges:
+			for edge in iterator.get_edges():
 
-				if (edge.node1 is iterator):
-					edge.asm1.left = edge.asm1.left + chunk_length
-					edge.asm1.right = edge.asm1.right + chunk_length
-				elif (edge.node2 is iterator):
-					edge.asm2.left = edge.asm2.left + chunk_length
-					edge.asm2.right = edge.asm2.right + chunk_length
-				else:
-					assert(1==2)
+				edge.opposite_node(iterator).asm.shift(chunk_length)
 
 			iterator = iterator.next
 		
