@@ -12,7 +12,7 @@ class Node:
 		self.asm = ContigLocation(asm_name, asm_start, asm_stop)
 
 		#the edges between this node and any others
-		self.edges = []
+		self._edges = []
 		#TODO refactor this to _edges to make sure this isn't accidentally modified from node_list_generator.py
 		self._edges_sorted = True #used to help amortize sorting
 
@@ -25,22 +25,22 @@ class Node:
 		self.next = None
 
 	def add_edge(self, edge):
-		self.edges.append(edge)
+		self._edges.append(edge)
 		self._edges_sorted = False
 
 	def remove_edge(self, edge):
-		self.edges.remove(edge)
+		self._edges.remove(edge)
 
 	def get_edges(self):
-		return self.edges
+		return self._edges
 
 	#TODO quick familiar implementation below; this can be optimized further according to
 	#https://stackoverflow.com/questions/403421/how-to-sort-a-list-of-objects-based-on-an-attribute-of-the-objects
 	def get_sorted_edges(self):
 		if (not _edges_sorted):
-			self.edges.sort( key = lambda e : e.edge_start(self) )
+			self._edges.sort( key = lambda e : e.edge_start(self) )
 			_edges_sorted = True
-		return self.edges
+		return self._edges
 
 	def printn(self):
 		print(str(self.line_num))
@@ -69,7 +69,7 @@ class Node:
 		print(str(self))
 		debug_print = False
 
-		for edge in self.edges:
+		for edge in self._edges:
 
 			debug_print = False
 
