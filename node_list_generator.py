@@ -154,8 +154,8 @@ for num, node in enumerate(line_indexed_nodes):
 			if search is seed:
 				index = loc
 				break
-		chunk_start = seed.edge_start(node)
-		chunk_stop = seed.edge_stop(node)
+		chunk_start = seed.edge_low(node)
+		chunk_stop = seed.edge_high(node)
 
 		#TODO this search can be optimized- currently building for speed in order to demo
 		#TODO is len inside a loop condition recalculated every time? if so could be made more efficient, but is it possible for the list
@@ -168,8 +168,8 @@ for num, node in enumerate(line_indexed_nodes):
 			else:
 				break #chunk is a contiguous section of a node containing edges that all end in the same other node, which is on a different contig
 				#thus, encountering an edge that does not end in that particular different contig indicates a chunk boundary
-			chunk_start = min( chunk_start, curr_edge.edge_start(node) )
-			chunk_stop = max( chunk_stop, curr_edge.edge_stop(node) )
+			chunk_start = min( chunk_start, curr_edge.edge_low(node) )
+			chunk_stop = max( chunk_stop, curr_edge.edge_high(node) )
 			left_search -= 1
 
 		right_search = index + 1
@@ -181,8 +181,8 @@ for num, node in enumerate(line_indexed_nodes):
 			else:
 				break #chunk is a contiguous section of a node containing edges that all end in the same other node, which is on a different contig
 				#thus, encountering an edge that does not end in that particular different contig indicates a chunk boundary
-			chunk_start = min( chunk_start, curr_edge.edge_start(node) )
-			chunk_stop = max( chunk_stop, curr_edge.edge_stop(node) )
+			chunk_start = min( chunk_start, curr_edge.edge_low(node) )
+			chunk_stop = max( chunk_stop, curr_edge.edge_high(node) )
 			right_search += 1
 
 		chunk_edges.add(seed)
@@ -193,7 +193,7 @@ for num, node in enumerate(line_indexed_nodes):
 		right_edges = [] #this ensures proper behavior in the event that right_search = ordered_edges and the loop doesn't run
 		while ( right_search < len(ordered_edges) ):
 			curr_edge = ordered_edges[right_search]
-			if curr_edge.edge_start(node) < chunk_stop :
+			if curr_edge.edge_low(node) < chunk_stop :
 				node.remove_edge(curr_edge)
 				curr_edge.opposite_node(node).remove_edge(curr_edge)
 				#TODO
@@ -207,7 +207,7 @@ for num, node in enumerate(line_indexed_nodes):
 		left_edges = ordered_edges[:left_edges]
 		while ( left_search >= 0 ):
 			curr_edge = ordered_edges[left_search]
-			if curr_edge.edge_stop(node) > chunk_start :
+			if curr_edge.edge_high(node) > chunk_start :
 				node.remove_edge(curr_edge)
 				curr_edge.opposite_node(node).remove_edge(curr_edge)
 				#TODO

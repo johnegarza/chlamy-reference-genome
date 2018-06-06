@@ -35,6 +35,24 @@ class Edge:
 		else:
 			assert (1==2)
 '''
+
+	def edge_low(self, node):
+		if node is self.node1:
+			return self.asm1.low()
+		elif node is self.node2:
+			return self.asm2.low()
+		else:
+			assert(1==2)
+
+	def edge_high(self, node):
+		if node is self.node1:
+			return self.asm1.high()
+		elif node is self.node2:
+			return self.asm2.high()
+		else:
+			assert(1==2)
+
+	#edge_start/stop may be deprecated since the introduction of edge_low/high
 	def edge_start(self, node):
 		if node is self.node1:
 			return self.asm1.left
