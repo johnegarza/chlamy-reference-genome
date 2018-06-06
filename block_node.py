@@ -33,6 +33,7 @@ class Node:
 	def get_edges(self):
 		return self._edges
 
+	#TODO double check to make sure this is sorting the way I expect it to
 	#TODO quick familiar implementation below; this can be optimized further according to
 	#https://stackoverflow.com/questions/403421/how-to-sort-a-list-of-objects-based-on-an-attribute-of-the-objects
 	def get_sorted_edges(self):

@@ -139,6 +139,53 @@ for num, node in enumerate(line_indexed_nodes):
 			bad_edges.add(a_name)
 			chunk_seeds.append(edge)
 
+	###begin new dev
+
+	#TODO how well does this work for ref-asm reversed alignments
+	for seed in chunk_seeds:
+
+		#STEP 1: grab all edges that belong in a chunk and define chunk boundaries
+		ordered_edges = node.get_sorted_edges()
+		other_node = seed.opposite_node(node)
+
+		chunk_edges = set()
+		index = -1
+		for loc, search in enumerate(ordered_edges):
+			if search is seed:
+				index = loc
+				break
+		chunk_start = seed.edge_start(node)
+		chunk_stop = seed.edge_stop(node)
+
+		#TODO this search can be optimized- currently building for speed in order to demo
+		left_search = index - 1
+		while(left_search >= 0):
+			curr_edge = ordered_edges[left_search]
+			if curr_edge.opposite_node(node) is other_node:
+				chunk_edges.add(curr_edge)
+			else:
+				break #chunk is a contiguous section of a node containing edges that all end in the same other node, which is on a different contig
+				#thus, encountering an edge that does not end in that particular different contig indicates a chunk boundary
+			chunk_start = min( chunk_start, curr_edge.edge_start(node) )
+			chunk_stop = max( chunk_stop, curr_edge.edge_stop(node) )
+			left_search -= 1
+
+		right_search = index + 1
+		while ( right_search < len(ordered_edges) ):
+			curr_edge = ordered_edges[right_search]
+			if curr_edge.opposite_node(node) is other_node:
+				chunk_edges.add(curr_edge)
+			else:
+				break #chunk is a contiguous section of a node containing edges that all end in the same other node, which is on a different contig
+				#thus, encountering an edge that does not end in that particular different contig indicates a chunk boundary
+			chunk_start = min( chunk_start, curr_edge.edge_start(node) )
+			chunk_stop = max( chunk_stop, curr_edge.edge_stop(node) )
+			right_search += 1
+
+		chunk_edges.add(seed)
+
+	###end new dev
+
 	for seed in chunk_seeds:
 
 		other = seed.opposite_node(node)

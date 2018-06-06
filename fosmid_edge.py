@@ -33,6 +33,14 @@ class Edge:
 		else:
 			assert(1==2)
 
+	def edge_stop(self, node):
+		if node is self.node1:
+			return self.asm1.right
+		elif node is self.node2:
+			return self.asm2.right
+		else:
+			assert(1==2)
+
 	def opposite_node(self, node):
 		if node is self.node1:
 			return self.node2
