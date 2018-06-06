@@ -24,7 +24,17 @@ class Edge:
 			self.weight = 5
 		else:
 			self.weight = 10
+'''
+		#temp testing
+		assert t_a_s <= t_a_e, str(t_a_s) + " " + str(t_a_e)
+		assert o_a_s <= o_a_e
 
+	def edge_start(self, node):
+		if node is self.node1:
+		elif node is self.node2:
+		else:
+			assert (1==2)
+'''
 	def edge_start(self, node):
 		if node is self.node1:
 			return self.asm1.left

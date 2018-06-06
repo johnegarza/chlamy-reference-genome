@@ -126,7 +126,7 @@ with open(fosmid_pairs) as f_p:
 		edge = Edge(node1, node2, left_ref_start, left_ref_stop, left_asm_start, left_asm_stop, right_ref_start, right_ref_stop, right_asm_start, right_asm_stop)
 		node1.add_edge(edge)
 		node2.add_edge(edge)
-		edges.append(edge)
+		edges.append(edge) #TODO if no proper use for this, remove; will just lead to memory leaks, as this keeps edges deleted later on still alive due to the reference
 
 for num, node in enumerate(line_indexed_nodes):
 
@@ -158,6 +158,8 @@ for num, node in enumerate(line_indexed_nodes):
 		chunk_stop = seed.edge_stop(node)
 
 		#TODO this search can be optimized- currently building for speed in order to demo
+		#TODO is len inside a loop condition recalculated every time? if so could be made more efficient, but is it possible for the list
+
 		left_search = index - 1
 		while(left_search >= 0):
 			curr_edge = ordered_edges[left_search]
@@ -171,6 +173,7 @@ for num, node in enumerate(line_indexed_nodes):
 			left_search -= 1
 
 		right_search = index + 1
+		#to be modified (anticipating future parallelization of portions of the code)
 		while ( right_search < len(ordered_edges) ):
 			curr_edge = ordered_edges[right_search]
 			if curr_edge.opposite_node(node) is other_node:
@@ -183,6 +186,44 @@ for num, node in enumerate(line_indexed_nodes):
 			right_search += 1
 
 		chunk_edges.add(seed)
+
+		#STEP 2 separate the remaining edges to make sure none accidentally have an endpoint cut in half when the chunk is removed
+		#for reference, see pic from 6/6/18 ~12:15 PM TODO download and include in repo
+		
+		right_edges = [] #this ensures proper behavior in the event that right_search = ordered_edges and the loop doesn't run
+		while ( right_search < len(ordered_edges) ):
+			curr_edge = ordered_edges[right_search]
+			if curr_edge.edge_start(node) < chunk_stop :
+				node.remove_edge(curr_edge)
+				curr_edge.opposite_node(node).remove_edge(curr_edge)
+				#TODO
+				#is this sufficient? should curr_edge be explicitly deleted as well?
+				#should the removal of an edge be noted? this may be dangerous
+			else:
+				right_edges = ordered_edges[right_search:]
+				break
+			right_search += 1
+
+		left_edges = ordered_edges[:left_edges]
+		while ( left_search >= 0 ):
+			curr_edge = ordered_edges[left_search]
+			if curr_edge.edge_stop(node) > chunk_start :
+				node.remove_edge(curr_edge)
+				curr_edge.opposite_node(node).remove_edge(curr_edge)
+				#TODO
+				#is this sufficient? should curr_edge be explicitly deleted as well?
+				#should the removal of an edge be noted? this may be dangerous
+				
+				left_edges.remove(curr_edge)
+
+			#no else- in this while case, we must check until the end, due to the ordering being based on the
+			#left/start coord (see pic for reference- must remove edges 3 and 4, and can't know how many
+			#have stop coords after chunk start from the start coord alone)
+
+		#safety check while developing
+		assert len(node.get_edges()) == ( len(chunk_edges) + len(right_edges) + len(left_edges) )
+		
+		#STEP 3 construct new nodes 
 
 	###end new dev
 
