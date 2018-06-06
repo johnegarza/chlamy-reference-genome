@@ -13,7 +13,6 @@ class Node:
 
 		#the edges between this node and any others
 		self._edges = []
-		#TODO refactor this to _edges to make sure this isn't accidentally modified from node_list_generator.py
 		self._edges_sorted = True #used to help amortize sorting
 
 
