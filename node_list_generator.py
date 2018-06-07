@@ -223,7 +223,16 @@ for num, node in enumerate(line_indexed_nodes):
 		#safety check while developing
 		assert len(node.get_edges()) == ( len(chunk_edges) + len(right_edges) + len(left_edges) )
 		
-		#STEP 3 construct new nodes 
+		#STEP 3 construct new nodes
+
+		#TODO this approach simply inserts a pulled-out bad node to the left of the node that it matches- real algorithm will be much more complex
+		
+		node_len = (chunk_stop - chunk_start) + 1
+		#another = other.prev
+		chunk_node = Node(-1, 
+
+
+
 
 	###end new dev
 
