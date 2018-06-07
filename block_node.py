@@ -45,11 +45,11 @@ class Node:
 		else:
 			self.asm_original = asm_original_CL
 
+		self._edges = []
 		if my_edges is None:
-			self._edges = []
 			self._edges_sorted = True #used to help amortize sorting
 		else:
-			self._edges = my_edges
+			self._edges.extend(my_edges) #more general- allows passing of lists or sets
 			self._edges_sorted = False #safer but slower
 			#TODO evaluate this choice later; may be able to keep this as true depending on how it's used in node_list_generator.py
 
