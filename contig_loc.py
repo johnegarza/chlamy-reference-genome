@@ -28,3 +28,6 @@ class ContigLocation:
 
 	def get_coords(self):
 		return (self.left, self.right)
+
+	def rev(self):
+		return self.left > self.right

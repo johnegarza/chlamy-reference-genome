@@ -5,6 +5,7 @@ from fosmid_edge import Edge
 import pickle
 import argparse
 import copy
+from contig_loc import ContigLocation
 
 if len(sys.argv) < 3:
 	sys.exit("Usage: %s block_list_tab_delimited indexed_fosmid_pairs" % sys.argv[0])

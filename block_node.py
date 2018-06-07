@@ -1,7 +1,9 @@
 from contig_loc import ContigLocation
+import copy
 
 class Node:
 
+	'''
 	def __init__(self, line_num, ref_name, ref_start, ref_stop, asm_name, asm_start, asm_stop):
 
 		#line number in the nucmer alignment output- to keep track of where this came from and for debugging later
@@ -22,6 +24,37 @@ class Node:
 		#TODO add these as parameters in the arguments list, with default values None
 		self.prev = None
 		self.next = None
+	'''
+
+	def __init__(self, line_num, ref_CL, asm_CL, asm_original_CL = None, my_edges = None, p_node = None, n_node = None):
+
+		#line number in the nucmer alignment output- to keep track of where this came from and for debugging later
+		self.line_num = int(line_num) 
+
+		self.ref = ref_CL #ContigLocation defining where this node aligns to in the reference
+		self.asm = asm_CL #ContigLocation defining where this node belong in the assembly
+
+		#asm_original is a ContigLocation defining where this node was originally placed in the assembly
+		if asm_original_CL is None:
+			#TODO
+			#deep copy so that changes to asm_CL do not affect asm_original
+			#on the other hand, note that this means asm_original == asm will always be false, so compare .name instead?
+			#actually that won't work, but not important now
+			assert(1==2) #so I don't forget to take care of this before actual trials
+			self.asm_original = copy.deepcopy(asm_CL)
+		else:
+			self.asm_original = asm_original_CL
+
+		if my_edges is None:
+			self._edges = []
+			self._edges_sorted = True #used to help amortize sorting
+		else:
+			self._edges = my_edges
+			self._edges_sorted = False #safer but slower
+			#TODO evaluate this choice later; may be able to keep this as true depending on how it's used in node_list_generator.py
+
+		self.prev = p_node
+		self.next = n_node
 
 	def add_edge(self, edge):
 		self._edges.append(edge)
