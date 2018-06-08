@@ -40,7 +40,10 @@ with open(alignment_file) as a_f:
 	#initialize some dummy data so my script can dynamically begin construction from the 
 	#beginning of the file, instead of needing to hard code the initial case
 	prev_scaf = " "
-	dummy_node = Node(0, "dummmy", 0, 0, "dummy", 0, 0)
+
+	dummy_CL = ContigLocation("dummy", 0, 0)
+	dummy_node = Node(-1, dummy_CL, dummy_CL)
+
 	curr_node = dummy_node
 
 	for line_id, block in enumerate(alignment_data):
@@ -64,15 +67,20 @@ with open(alignment_file) as a_f:
 			#the last contig would use them, and refs to all other contigs would be lost)
 
 			tail_id = "tail after " + str(line_id)
-			tail_node = Node(0, tail_id, 0, 0, tail_id, 0, 0)
-			tail_node.prev = curr_node
+			tail_CL = ContigLocation(tail_id, 0, 0)
+			tail_node = Node(-1, tail_CL, tail_CL, p_node = curr_node)
+
 			curr_node.next = tail_node
 
 			head_id = "head before " + str(line_id + 1)
-			head_node = Node(0, head_id, 0, 0, head_id, 0, 0)
-			curr_node = Node(line_num, ref_chr, ref_start, ref_stop, asm_scaf, asm_start, asm_stop)
+			head_CL = ContigLocation(head_id, 0, 0)
+			head_node = Node(-1, head_CL, head_CL)
+
+			curr_ref_CL = ContigLocation(ref_chr, ref_start, ref_stop)
+			curr_asm_CL = ContigLocation(asm_scaf, asm_start, asm_stop)
+			curr_node = Node(line_num, curr_ref_CL, curr_asm_CL, p_node = head_node)
+
 			head_node.next = curr_node
-			curr_node.prev = head_node
 
 			contigs.append(head_node)
 
@@ -80,13 +88,15 @@ with open(alignment_file) as a_f:
 
 			prev_scaf = asm_scaf
 			
-			#TODO isn't this just an else case
+			#TODO isn't this just an else case ~~~ 6/7/18- why not?
 			continue #work is done for this cycle, and thanks to python's scope (or lack thereof)
 				 #we can just skip to the next iteration of the loop
 
-		new_node = Node(line_num, ref_chr, ref_start, ref_stop, asm_scaf, asm_start, asm_stop)
+		new_ref_CL = ContigLocation(ref_chr, ref_start, ref_stop)
+		new_asm_CL = ContigLocation(asm_scaf, asm_start, asm_stop)
+		new_node = Node(line_num, new_ref_CL, new_asm_CL, p_node = curr_node)
+
 		curr_node.next = new_node
-		new_node.prev = curr_node
 		curr_node = new_node
 
 		line_indexed_nodes.append(curr_node)
@@ -95,8 +105,9 @@ with open(alignment_file) as a_f:
 
 	#make the tail for the final contig
 	tail_id = "tail after " + str(line_id)
-	tail_node = Node(0, tail_id, 0, 0, tail_id, 0, 0)
-	tail_node.prev = curr_node
+
+	tail_CL = ContigLocation(tail_id, 0, 0)
+	tail_node = Node(-1, tail_CL, tail_CL, p_node = curr_node)
 	curr_node.next = tail_node
 
 with open(fosmid_pairs) as f_p:
@@ -230,9 +241,23 @@ for num, node in enumerate(line_indexed_nodes):
 		
 		node_len = (chunk_stop - chunk_start) + 1
 		#another = other.prev
-		chunk_node = Node(-1, 
 
+		left_dist = chunk_start - node.asm.left
+		right_dist = node.asm.right - chunk_stop
 
+		#TODO refactor with new ContigLocation trim functions
+		if node.ref.rev():
+			chunk_ref_CL = ContigLocation(node.ref.name, node.ref.left - left_dist, node.ref.right + right_dist)
+		else:
+			chunk_ref_CL = ContigLocation(node.ref.name, node.ref.left + left_dist, node.ref.right - right_dist)
+
+		chunk_asm_CL = ContigLocation(other_node.asm.name, other_node.asm.left, other_node.asm.right + (node_len - 1) )
+
+		chunk_node = Node(-1, chunk_ref_CL, chunk_asm_CL, node.asm_original, chunk_edges)
+
+		left_ref_CL = node.ref.trim_right( 
+		left_asm_CL = (node.asm.name, node.asm.left, chunk_start - 1)
+		left_node = Node(-1, 
 
 
 	###end new dev
@@ -262,7 +287,8 @@ for num, node in enumerate(line_indexed_nodes):
 		#create the new node
 		move_record = seed.node1.asm.name + ">" + seed.node2.asm.name
 		#move_record = node.asm_name + ">" + other.asm_name #record where it was and where it was placed
-		new_node = Node(-1, node.ref.name, node.ref.left, node.ref.right, move_record, new_start, new_stop)
+		new_CL = ContigLocation(move_record, new_start, new_stop)
+		new_node = Node(-1, node.ref, new_CL)
 
 		#transfer ownership of edges
 		for edge in new_edges:

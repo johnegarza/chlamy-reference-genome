@@ -31,3 +31,19 @@ class ContigLocation:
 
 	def rev(self):
 		return self.left > self.right
+
+	def trim_left(self, num):
+		if self.rev():
+			return ContigLocation(self.name, self.left - num, self.right)
+		else:
+			return ContigLocation(self.name, self.left + num, self.right)
+
+	def trim_right(self, num):
+		if self.rev():
+			return ContigLocation(self.name, self.left, self.right + num)
+		else:
+			return ContigLocation(self.name, self.left, self.right - num)
+
+
+
+
