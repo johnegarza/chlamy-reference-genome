@@ -242,10 +242,11 @@ for num, node in enumerate(line_indexed_nodes):
 		node_len = (chunk_stop - chunk_start) + 1
 		#another = other.prev
 
-		left_dist = chunk_start - node.asm.left
+		left_dist = chunk_start - node.asm.left #using this gives inclusive coords
 		right_dist = node.asm.right - chunk_stop
 
 		#TODO refactor with new ContigLocation trim functions
+		#TODO ref CL changes only work if nodes are a one-to-one mapping; is this accurate?
 		if node.ref.rev():
 			chunk_ref_CL = ContigLocation(node.ref.name, node.ref.left - left_dist, node.ref.right + right_dist)
 		else:
@@ -255,9 +256,59 @@ for num, node in enumerate(line_indexed_nodes):
 
 		chunk_node = Node(-1, chunk_ref_CL, chunk_asm_CL, node.asm_original, chunk_edges)
 
-		left_ref_CL = node.ref.trim_right( 
+		left_ref_CL = node.ref.trim_left(left_dist - 1) #-1 because otherwise this and prev node would start at the exact same coord; this CL should have exclusive coords
 		left_asm_CL = (node.asm.name, node.asm.left, chunk_start - 1)
-		left_node = Node(-1, 
+		left_node = Node(-1, left_ref_CL, left_asm_CL, node.asm_original, left_edges)
+
+		right_ref_CL = node.ref.trim_right(right_dist - 1)
+		right_asm_CL = (node.asm.name, chunk_start, node.asm.right - node_len)
+		right_node = Node(-1, right_ref_CL, right_asm_CL, node.asm_original
+
+		#STEP 4 insert new nodes, including updating references for the surrounding nodes
+
+		#TODO currently not handling updating contig heads
+		assert(1==2) #see above
+		node.prev.next = left_node
+		node.next.prev = right_node
+		
+		left_node.prev = node.prev
+		right_node.next = node.next
+
+		left_node.next = right_node
+		right_node.prev = left_node
+		
+		chunk_node.prev = other_node.prev
+		chunk_node.next = other_node
+		other_node.prev.next = chunk_node
+		other_node.prev = chunk_node
+
+		#STEP 5 update edge endpoints to point to their new nodes and clear original node so that no refs are left and garbage collector will free its memory
+		left_node.new_edge_endpoints(node)
+		right_node.new_edge_endpoints(node)
+		chunk_node.new_edge_endpoints(node)
+		node.clear()
+#		del node #TODO evaluate if this is necessary when the design is more complete
+
+
+		#STEP 6 propogate coordinate updates to all nodes (and their edges) that changed location due to the insertion/deletion
+		
+		#TODO refactor so that chunk_node is part of the loop? removes many of the next lines and makes this cleaner overall
+		chunk_node.shift_edges(node_len) #coords have already been shifted during creation
+		if chunk_node.next is not None:
+			iterator = chunk_node.next
+			if iterator.next is None:
+				iterator.shift(node_len)
+			while iterator.next is not None:
+				iterator.shift(node_len)
+		
+		#TODO same as above
+		right_node.shift_edges(-node_len)
+		if right_node.next is not None:
+			iterator = right_node.next
+			if iterator.next is None:
+				iterator.shift(-node_len)
+			while iterator.next is not None:
+				iterator.shift(-node_len)
 
 
 	###end new dev

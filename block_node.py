@@ -75,6 +75,33 @@ class Node:
 			_edges_sorted = True
 		return self._edges
 
+	def new_edge_endpoints(self, old_node):
+		for edge in self._edges:
+			if edge.node1 is old_node:
+				edge.node1 = self
+			elif edge.node2 is old_node:
+				edge.node2 = self
+			else:
+				assert(1==2)
+	def clear(self):
+		self.ref = None
+		self.asm = None
+		self.asm_original = None
+		self._edges = None
+		self.prev = None
+		self.prev = None
+
+	def shift_coords(self, num):
+		self.asm.shift(num)
+
+	def shift_edges(self, num):
+		for edge in self._edges:
+			edge.shift(num)
+
+	def shift(self, num):
+		self.shift_coords(num)
+		self.shift_edges(num)
+
 	def printn(self):
 		print(str(self.line_num))
 
