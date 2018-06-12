@@ -40,7 +40,7 @@ class Node:
 			#deep copy so that changes to asm_CL do not affect asm_original
 			#on the other hand, note that this means asm_original == asm will always be false, so compare .name instead?
 			#actually that won't work, but not important now
-			assert(1==2) #so I don't forget to take care of this before actual trials
+			#assert(1==2) #so I don't forget to take care of this before actual trials
 			self.asm_original = copy.deepcopy(asm_CL)
 		else:
 			self.asm_original = asm_original_CL

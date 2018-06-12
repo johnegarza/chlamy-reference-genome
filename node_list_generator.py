@@ -59,28 +59,13 @@ with open(alignment_file) as a_f:
 
 		if(prev_scaf != asm_scaf): #end of an assembly contig
 
-			#head/tail id both for use in debugging and to force creation of new node each time
-			#without unique id, might just repeatedly use reference to same head/tail each time
-			#so all contigs would share same head/tail and things would get weird (actually, only
-			#the last contig would use them, and refs to all other contigs would be lost)
-
-			tail_id = "tail after " + str(line_id)
-			tail_CL = ContigLocation(tail_id, 0, 0)
-			tail_node = Node(-1, tail_CL, tail_CL, p_node = curr_node)
-
-			curr_node.next = tail_node
-
-			head_id = "head before " + str(line_id + 1)
-			head_CL = ContigLocation(head_id, 0, 0)
-			head_node = Node(-1, head_CL, head_CL)
+			curr_node.next = None #TODO may not be necessary
 
 			curr_ref_CL = ContigLocation(ref_chr, ref_start, ref_stop)
 			curr_asm_CL = ContigLocation(asm_scaf, asm_start, asm_stop)
-			curr_node = Node(line_num, curr_ref_CL, curr_asm_CL, p_node = head_node)
+			curr_node = Node(line_num, curr_ref_CL, curr_asm_CL)
 
-			head_node.next = curr_node
-
-			contigs.append(head_node)
+			contigs.append(curr_node)
 
 			line_indexed_nodes.append(curr_node)
 
@@ -100,13 +85,6 @@ with open(alignment_file) as a_f:
 		line_indexed_nodes.append(curr_node)
 
 		prev_scaf = asm_scaf
-
-	#make the tail for the final contig
-	tail_id = "tail after " + str(line_id)
-
-	tail_CL = ContigLocation(tail_id, 0, 0)
-	tail_node = Node(-1, tail_CL, tail_CL, p_node = curr_node)
-	curr_node.next = tail_node
 
 with open(fosmid_pairs) as f_p:
 
@@ -137,6 +115,16 @@ with open(fosmid_pairs) as f_p:
 		node1.add_edge(edge)
 		node2.add_edge(edge)
 		edges.append(edge) #TODO if no proper use for this, remove; will just lead to memory leaks, as this keeps edges deleted later on still alive due to the reference
+
+for cnum, contig_head in enumerate(contigs):
+	
+	iterator = contig_head
+	while(iterator is not None):
+		for edge in iterator._edges:
+			if edge.weight == -10:
+				print("bad edge")
+		iterator = iterator.next
+
 
 for num, node in enumerate(line_indexed_nodes):
 
@@ -260,7 +248,7 @@ for num, node in enumerate(line_indexed_nodes):
 
 		right_ref_CL = node.ref.trim_right(right_dist - 1)
 		right_asm_CL = (node.asm.name, chunk_start, node.asm.right - node_len)
-		right_node = Node(-1, right_ref_CL, right_asm_CL, node.asm_original
+		right_node = Node(-1, right_ref_CL, right_asm_CL, node.asm_original)
 
 		#STEP 4 insert new nodes, including updating references for the surrounding nodes
 
@@ -311,6 +299,7 @@ for num, node in enumerate(line_indexed_nodes):
 
 	###end new dev
 
+	'''
 	for seed in chunk_seeds:
 
 		other = seed.opposite_node(node)
@@ -396,14 +385,24 @@ for num, node in enumerate(line_indexed_nodes):
 				edge.opposite_node(iterator).asm.shift(chunk_length)
 
 			iterator = iterator.next
-		
+		'''
+'''		
 for cnum, contig_head in enumerate(contigs):
 	
 	iterator = contig_head
 	while(iterator is not None):
 		print( str(cnum) + "\t" + str(iterator) )
 		iterator = iterator.next
+'''
 
+for cnum, contig_head in enumerate(contigs):
+	
+	iterator = contig_head
+	while(iterator is not None):
+		for edge in iterator._edges:
+			if edge.weight == -10:
+				print("bad edge")
+		iterator = iterator.next
 
 
 
