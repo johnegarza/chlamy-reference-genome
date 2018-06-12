@@ -111,7 +111,6 @@ class RefMapper:
 		#fail or not- data on which ends could not be used may be useful
 		if (list_index == -1):
 			#it was never updated
-#			print str(line_num) + "." + str(num) + " has no match"
 			return (False, -1, -1, "", -1, -1)
 
 		
@@ -131,34 +130,7 @@ class RefMapper:
 		#TODO leaving it for now, but why the 3rd condition? what about reverse alignments
 		if ( (left_tuple_index == -1) or (right_tuple_index == -1) or (left_tuple_index > right_tuple_index) ):
 			
-			#print( "left coord: " + str(left_coord) + " | right coord: " + str(right_coord) )
-			#print( "left index: " + str(left_tuple_index) + " | right index: " + str(right_tuple_index) )
-			#print(self.ref_coords[list_index])
-			#print(self.query_coords[list_index])
 			return (False, -1, -1, "", -1, -1)
-
-		#rewriting
-		'''
-		left_dist = left_coord - int(self.ref_coords[list_index][left_tuple_index][0])
-		right_dist = right_coord - int(self.ref_coords[list_index][right_tuple_index][0])
-
-		#check if the query is aligned forward or reverse
-		#TODO isn't this line doing nothing
-		if ( int(self.query_coords[list_index][left_tuple_index][0]) < int(self.query_coords[list_index][left_tuple_index][1]) ):
-			newLeft = int(self.query_coords[list_index][left_tuple_index][0]) + left_dist
-			newRight = int(self.query_coords[list_index][right_tuple_index][0]) + right_dist
-		else:
-			newLeft = int(self.query_coords[list_index][left_tuple_index][0]) - left_dist
-			newRight = int(self.query_coords[list_index][right_tuple_index][0]) - right_dist
-		'''
-
-		print(left_coord)
-		print(str(self.ref_coords[list_index][left_tuple_index]))
-		print(str(self.query_coords[list_index][left_tuple_index]))
-		print(right_coord)
-		print(str(self.ref_coords[list_index][right_tuple_index]))
-		print(str(self.query_coords[list_index][right_tuple_index]))
-
 
 		#map left coord
 		if int(self.ref_coords[list_index][left_tuple_index][0]) < int(self.ref_coords[list_index][left_tuple_index][1]): #ref coords are forward
@@ -169,15 +141,8 @@ class RefMapper:
 			if (int(self.query_coords[list_index][left_tuple_index][0]) < int(self.query_coords[list_index][left_tuple_index][1])): #forward
 				newLeft = int(self.query_coords[list_index][left_tuple_index][0]) + adjust
 
-#				print("inner if")
-
 			else: #reverse
 				newLeft = int(self.query_coords[list_index][left_tuple_index][0]) - adjust
-
-#				print("inner else")
-#				print( str(self.query_coords[list_index][left_tuple_index][0]) + "\t" + str() )
-
-#			print("if")
 
 		else: #reverse
 			adjust = int(self.ref_coords[list_index][left_tuple_index][0]) - l_coord
@@ -186,10 +151,6 @@ class RefMapper:
 				newLeft = int(self.query_coords[list_index][left_tuple_index][0]) + adjust
 			else: #reverse
 				newLeft = int(self.query_coords[list_index][left_tuple_index][0]) - adjust
-
-#			print("else")
-
-#		print("adjust: " + str(adjust) + " newLeft: " + str(newLeft) )
 
 		#map right coord
 		if int(self.ref_coords[list_index][right_tuple_index][0]) < int(self.ref_coords[list_index][right_tuple_index][1]): #ref coords are forward
@@ -208,8 +169,6 @@ class RefMapper:
 				newRight = int(self.query_coords[list_index][right_tuple_index][0]) + adjust
 			else: #reverse
 				newRight = int(self.query_coords[list_index][right_tuple_index][0]) - adjust
-
-#		print("----------" + str(newLeft) + "\t" + str(newRight) + "---------")
 
 		old_dist = abs(right_coord - left_coord)
 		new_dist = abs(newLeft - newRight)
