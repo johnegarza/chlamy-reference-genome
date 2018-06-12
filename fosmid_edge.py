@@ -4,16 +4,22 @@ class Edge:
 
 	def __init__(self, this_node, other_node, t_r_s, t_r_e, t_a_s, t_a_e, o_r_s, o_r_e, o_a_s, o_a_e):
 
+		#TODO refactor constructor to take in ContigLocation?
+		_ref_name1 = this_node.ref.name
+		_asm_name1 = this_node.asm.name
+		_ref_name2 = other_node.ref.name
+		_asm_name2 = other_node.asm.name
+
 		#Endpoint 1
-		self.ref1 = ContigLocation("xxx", t_r_s, t_r_e)
-		self.asm1_original = ContigLocation("xxx", t_a_s, t_a_e)
-		self.asm1 = ContigLocation("xxx", t_a_s, t_a_e)
+		self.ref1 = ContigLocation(_ref_name1, t_r_s, t_r_e)
+		self.asm1_original = ContigLocation(_ref_name1, t_a_s, t_a_e)
+		self.asm1 = ContigLocation(_asm_name1, t_a_s, t_a_e)
 		self.node1 = this_node
 
 		#Endpoint 2
-		self.ref2 = ContigLocation("xxx", o_r_s, o_r_e)
-		self.asm2_original = ContigLocation("xxx", o_a_s, o_a_e)
-		self.asm2 = ContigLocation("xxx", o_a_s, o_a_e)
+		self.ref2 = ContigLocation(_ref_name2, o_r_s, o_r_e)
+		self.asm2_original = ContigLocation(_ref_name2, o_a_s, o_a_e)
+		self.asm2 = ContigLocation(_asm_name2, o_a_s, o_a_e)
 		self.node2 = other_node
 
 		self.length = abs ( self.asm1.midpoint() - self.asm2.midpoint() )

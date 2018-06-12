@@ -70,9 +70,9 @@ class Node:
 	#TODO quick familiar implementation below; this can be optimized further according to
 	#https://stackoverflow.com/questions/403421/how-to-sort-a-list-of-objects-based-on-an-attribute-of-the-objects
 	def get_sorted_edges(self):
-		if (not _edges_sorted):
+		if (not self._edges_sorted):
 			self._edges.sort( key = lambda e : e.edge_low(self) )
-			_edges_sorted = True
+			self._edges_sorted = True
 		return self._edges
 
 	def new_edge_endpoints(self, old_node):

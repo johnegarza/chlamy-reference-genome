@@ -109,22 +109,10 @@ with open(fosmid_pairs) as f_p:
 		node1 = line_indexed_nodes[left_block_line - 1]
 		node2 = line_indexed_nodes[right_block_line - 1]
 
-		#print(str(endpoint1) + "\t" + str(node1.line_num))
-
 		edge = Edge(node1, node2, left_ref_start, left_ref_stop, left_asm_start, left_asm_stop, right_ref_start, right_ref_stop, right_asm_start, right_asm_stop)
 		node1.add_edge(edge)
 		node2.add_edge(edge)
 		edges.append(edge) #TODO if no proper use for this, remove; will just lead to memory leaks, as this keeps edges deleted later on still alive due to the reference
-
-for cnum, contig_head in enumerate(contigs):
-	
-	iterator = contig_head
-	while(iterator is not None):
-		for edge in iterator._edges:
-			if edge.weight == -10:
-				print("bad edge")
-		iterator = iterator.next
-
 
 for num, node in enumerate(line_indexed_nodes):
 
