@@ -22,11 +22,11 @@ with open(fosmid_pairs) as pairs:
 	for pair in pair_data:
 
 		end1_chr = pair[0]
-		end1_start = int(pair[1])
-		end1_stop = int(pair[2])
+		end1_start = min( int(pair[1]), int(pair[2]) )
+		end1_stop = max( int(pair[1]), int(pair[2]) )
 		end2_chr = pair[4]
-		end2_start = int(pair[5])
-		end2_stop = int(pair[6])
+		end2_start = min( int(pair[5]), int(pair[6]) )
+		end2_stop = max( int(pair[5]), int(pair[6]) )
 
 		with open(block_file) as blocks:
 			block_data = csv.reader(blocks, delimiter="\t")
@@ -36,9 +36,9 @@ with open(fosmid_pairs) as pairs:
 
 			for block in block_data:
 
-				chrom = block[0]
-				start = int(block[1])
-				stop = int(block[2])
+				chrom = block[3]
+				start = min( int(block[4]), int(block[5]) )
+				stop = max( int(block[4]), int(block[5]) )
 				line = int(block[8])
 
 				if ( (end1_chr == chrom) and (end1_start >= start) and (end1_stop <= stop) ):
@@ -47,9 +47,11 @@ with open(fosmid_pairs) as pairs:
 				if ( (end2_chr == chrom) and (end2_start >= start) and (end2_stop <= stop) ):
 					end2_line = line
 
+				if end1_line != 0 and end2_line != 0:
+					break
+
 
 		if ( (end1_line != 0) and (end2_line != 0) ):
-			#pass
 			print(pair[0] + "\t" + str(pair[1]) + "\t" + str(pair[2]) + "\t" + pair[3] + "\t" + str(end1_line) + "\t" + str(pair[4]) + "\t" + str(pair[5]) + "\t" + pair[6] + "\t" + pair[7] + "\t" + str(end2_line))
 
 		#else:

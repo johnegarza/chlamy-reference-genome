@@ -11,7 +11,7 @@ class RefMapper:
 		#this holds the name of the query scaffold/chromosome corresponding to a particular block
 		self.query_names = []
 
-		#TODO find a more effecient solution, or add in an option to disable this at the cost of increased computation time
+		#TODO find a more efficient solution, or add in an option to disable this at the cost of increased computation time
 		#reduces sort() time at the cost of memory; may be rebalanced in the future
 		#actually, may be able to refactor the entire class to only need this list, and none of the 3 preceding ones
 		self.sort_amortizer = []
@@ -92,10 +92,17 @@ class RefMapper:
 			#TODO remove int cast in final version of script, after all testing is complete
 			#casting in order to make this explicitly fail while still under development, since in python 2.x,
 			#comparing a str and int does not throw an error- it evaluates with no error and moves on
-			if int(block[0][0]) <= int(left_coord):
+
+			#TODO max/min functions may not be required: re-evaluate how forward/reverse coords are handled
+
+			l_coord = min(left_coord, right_coord)
+			r_coord = max(left_coord, right_coord)
+
+			first_coord = min(block[0][0], block[0][1])
+			if int(first_coord) <= int(l_coord):
 				#list_index = block_index
-				last_index = block[len(block)-1][1]
-				if int(last_index) >= int(right_coord):
+				last_coord = max(block[len(block)-1][0], block[len(block)-1][1])
+				if int(last_coord) >= int(r_coord):
 					#the fosmid end aligns to a continuous alignment block
 					list_index = block_index
 					break
@@ -128,7 +135,8 @@ class RefMapper:
 		right_dist = right_coord - int(self.ref_coords[list_index][right_tuple_index][0])
 
 		#check if the query is aligned forward or reverse
-		if ( int(self.query_coords[list_index][left_tuple_index][0]) < int(self.query_coords[list_index][left_tuple_index][0]) ):
+		#TODO isn't this line doing nothing
+		if ( int(self.query_coords[list_index][left_tuple_index][0]) < int(self.query_coords[list_index][left_tuple_index][1]) ):
 			newLeft = int(self.query_coords[list_index][left_tuple_index][0]) + left_dist
 			newRight = int(self.query_coords[list_index][right_tuple_index][0]) + right_dist
 		else:
