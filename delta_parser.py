@@ -155,6 +155,7 @@ for key in alignments:
 		new_query_name = key
 		real_mapper[new_key].update(new_ref_coords, new_query_coords, new_query_name)
 
+
 '''
 print("scaf 32 aligns to")
 str(alignments["scaffold32_size125501_pilon"])
@@ -183,12 +184,16 @@ with open(fosmid_file) as f_f:
 			right_name = block_data[right_line - 1].split("\t")[3]
 			
 
-
+		'''
 		left_map_name = real_mapper[left_name].map(left_end_start, left_end_stop, index, 0)[3]
 		right_map_name = real_mapper[right_name].map(right_end_start, right_end_stop, index, 1)[3]
-
+		
 		left_tuple = alignments[left_map_name].map(left_end_start, left_end_stop, index, 0)
 		right_tuple = alignments[right_map_name].map(right_end_start, right_end_stop, index, 1)
+		'''
+
+		left_tuple = real_mapper[left_name].map(left_end_start, left_end_stop, index, 0)
+		right_tuple = real_mapper[right_name].map(right_end_start, right_end_stop, index, 1)
 
 		if( left_tuple[0] and right_tuple[0] ):
 
@@ -206,14 +211,14 @@ with open(fosmid_file) as f_f:
 			'''
 
 			ans = []
-			ans.append(left_map_name)
+			ans.append(left_name)
 			ans.extend( [str(x) for x in left_tuple[1:]] )
 			ans.append( str(line[3]) ) #fosmid ID, VTP*
 			#ans.append( str(end1_line) ) 
 			ans.append(str(left_line))
-			ans.append( right_map_name )
+			ans.append( right_name )
 			ans.extend( [str(x) for x in right_tuple[1:]] )
-			ans.append( str(line[7].strip()) ) #fosmid ID, VTP*
+			ans.append( str(line[8]) ) #fosmid ID, VTP*
 			#ans.append( str(end2_line) )
 			ans.append(str(right_line))
 			print("\t".join(ans).strip())

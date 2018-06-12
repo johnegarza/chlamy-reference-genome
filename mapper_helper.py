@@ -98,10 +98,10 @@ class RefMapper:
 			l_coord = min(left_coord, right_coord)
 			r_coord = max(left_coord, right_coord)
 
-			first_coord = min(block[0][0], block[0][1])
+			first_coord = min(block[0][0], block[len(block)-1][1])
 			if int(first_coord) <= int(l_coord):
 				#list_index = block_index
-				last_coord = max(block[len(block)-1][0], block[len(block)-1][1])
+				last_coord = max(block[0][0], block[len(block)-1][1])
 				if int(last_coord) >= int(r_coord):
 					#the fosmid end aligns to a continuous alignment block
 					list_index = block_index
@@ -118,11 +118,17 @@ class RefMapper:
 		left_tuple_index = -1
 		right_tuple_index = -1
 		for tuple_index, coord_tuple in enumerate(self.ref_coords[list_index]):
-			if ((coord_tuple[0] <= left_coord) and (coord_tuple[1] >= left_coord)):
+
+			lo_tuple = min(coord_tuple[0], coord_tuple[1])
+			hi_tuple = max(coord_tuple[0], coord_tuple[1])
+
+			#TODO should I be using l_coord/r_coord here or left_coord/right_coord? see comment in mapping stage below as well
+			if ((lo_tuple <= l_coord) and (hi_tuple >= l_coord)):
 				left_tuple_index = tuple_index
-			if ((coord_tuple[0] <= right_coord) and (coord_tuple[1] >= right_coord)):
+			if ((lo_tuple <= r_coord) and (hi_tuple >= r_coord)):
 				right_tuple_index = tuple_index
 
+		#TODO leaving it for now, but why the 3rd condition? what about reverse alignments
 		if ( (left_tuple_index == -1) or (right_tuple_index == -1) or (left_tuple_index > right_tuple_index) ):
 			
 			#print( "left coord: " + str(left_coord) + " | right coord: " + str(right_coord) )
@@ -131,6 +137,8 @@ class RefMapper:
 			#print(self.query_coords[list_index])
 			return (False, -1, -1, "", -1, -1)
 
+		#rewriting
+		'''
 		left_dist = left_coord - int(self.ref_coords[list_index][left_tuple_index][0])
 		right_dist = right_coord - int(self.ref_coords[list_index][right_tuple_index][0])
 
@@ -142,9 +150,68 @@ class RefMapper:
 		else:
 			newLeft = int(self.query_coords[list_index][left_tuple_index][0]) - left_dist
 			newRight = int(self.query_coords[list_index][right_tuple_index][0]) - right_dist
+		'''
+
+		print(left_coord)
+		print(str(self.ref_coords[list_index][left_tuple_index]))
+		print(str(self.query_coords[list_index][left_tuple_index]))
+		print(right_coord)
+		print(str(self.ref_coords[list_index][right_tuple_index]))
+		print(str(self.query_coords[list_index][right_tuple_index]))
 
 
-		old_dist = right_coord - left_coord
+		#map left coord
+		if int(self.ref_coords[list_index][left_tuple_index][0]) < int(self.ref_coords[list_index][left_tuple_index][1]): #ref coords are forward
+			#TODO should I be using l_coord or left_coord- will still map properly but will force all alignments to be in forward direction
+			#not sure if preserving directionality matters later on or not
+			adjust = l_coord - int(self.ref_coords[list_index][left_tuple_index][0])
+
+			if (int(self.query_coords[list_index][left_tuple_index][0]) < int(self.query_coords[list_index][left_tuple_index][1])): #forward
+				newLeft = int(self.query_coords[list_index][left_tuple_index][0]) + adjust
+
+#				print("inner if")
+
+			else: #reverse
+				newLeft = int(self.query_coords[list_index][left_tuple_index][0]) - adjust
+
+#				print("inner else")
+#				print( str(self.query_coords[list_index][left_tuple_index][0]) + "\t" + str() )
+
+#			print("if")
+
+		else: #reverse
+			adjust = int(self.ref_coords[list_index][left_tuple_index][0]) - l_coord
+
+			if int(self.query_coords[list_index][left_tuple_index][0]) < int(self.query_coords[list_index][left_tuple_index][1]): #forward
+				newLeft = int(self.query_coords[list_index][left_tuple_index][0]) + adjust
+			else: #reverse
+				newLeft = int(self.query_coords[list_index][left_tuple_index][0]) - adjust
+
+#			print("else")
+
+#		print("adjust: " + str(adjust) + " newLeft: " + str(newLeft) )
+
+		#map right coord
+		if int(self.ref_coords[list_index][right_tuple_index][0]) < int(self.ref_coords[list_index][right_tuple_index][1]): #ref coords are forward
+			#TODO should I be using r_coord or right_coord- will still map properly but will force all alignments to be in forward direction
+			#not sure if preserving directionality matters later on or not
+			adjust = r_coord - int(self.ref_coords[list_index][right_tuple_index][0])
+
+			if int(self.query_coords[list_index][right_tuple_index][0]) < int(self.query_coords[list_index][right_tuple_index][1]): #forward
+				newRight = int(self.query_coords[list_index][right_tuple_index][0]) + adjust
+			else: #reverse
+				newRight = int(self.query_coords[list_index][right_tuple_index][0]) - adjust
+		else: #reverse
+			adjust = int(self.ref_coords[list_index][right_tuple_index][0]) - r_coord
+
+			if int(self.query_coords[list_index][right_tuple_index][0]) < int(self.query_coords[list_index][right_tuple_index][1]): #forward
+				newRight = int(self.query_coords[list_index][right_tuple_index][0]) + adjust
+			else: #reverse
+				newRight = int(self.query_coords[list_index][right_tuple_index][0]) - adjust
+
+#		print("----------" + str(newLeft) + "\t" + str(newRight) + "---------")
+
+		old_dist = abs(right_coord - left_coord)
 		new_dist = abs(newLeft - newRight)
 
 		if ( abs(new_dist - old_dist) > 20 ):
