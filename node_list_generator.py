@@ -49,17 +49,15 @@ with open(alignment_file) as a_f:
 	for line_id, block in enumerate(alignment_data):
 
 		#load in data from the current line
-		ref_chr = block[0]
-		ref_start = int(block[1])
-		ref_stop = int(block[2])
-		asm_scaf = block[3]
-		asm_start = int(block[4])
-		asm_stop = int(block[5])
+		asm_scaf = block[0]
+		asm_start = int(block[1])
+		asm_stop = int(block[2])
+		ref_chr = block[3]
+		ref_start = int(block[4])
+		ref_stop = int(block[5])
 		line_num = int(block[8])
 
 		if(prev_scaf != asm_scaf): #end of an assembly contig
-
-			#print("line: " + str(line_num) + " prev scaf: " + prev_scaf + " curr scaf: " + asm_scaf)
 
 			#head/tail id both for use in debugging and to force creation of new node each time
 			#without unique id, might just repeatedly use reference to same head/tail each time
