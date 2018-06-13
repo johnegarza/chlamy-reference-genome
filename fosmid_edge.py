@@ -41,6 +41,21 @@ class Edge:
 		else:
 			assert (1==2)
 		'''
+	def node_by_name(self, some_name):
+		if some_name == self.asm1.name:
+			return self.node1
+		elif some_name == self.asm2.name:
+			return self.node2
+		else:
+			assert(1==2)
+
+	def shift(self, node, number):
+		if node is self.node1:
+			self.asm1.shift(number)
+		elif node is self.node2:
+			self.asm2.shift(number)
+		else:
+			assert(1==2)
 
 	def edge_low(self, node):
 		if node is self.node1:

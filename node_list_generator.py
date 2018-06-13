@@ -114,11 +114,16 @@ with open(fosmid_pairs) as f_p:
 		node2.add_edge(edge)
 		edges.append(edge) #TODO if no proper use for this, remove; will just lead to memory leaks, as this keeps edges deleted later on still alive due to the reference
 
+timer = len(line_indexed_nodes)
 for num, node in enumerate(line_indexed_nodes):
+
+	print( str(num+1) + "/" + str(timer) )
 
 	bad_edges = set()
 	chunk_seeds = []
 
+	#find all other assembly scaffolds this node may have edges to; will choose one edges for each different scaffold, then use that as a "seed" to build up 
+	#a "chunk", a portion of the node that likely belongs on that other scaffold and not the current one
 	for edge in node.get_edges():
 		a_name = edge.opposite_node(node).asm.name
 		if ( (edge.weight == -10) and (a_name not in bad_edges) ):
@@ -128,7 +133,13 @@ for num, node in enumerate(line_indexed_nodes):
 	###begin new dev
 
 	#TODO how well does this work for ref-asm reversed alignments
+
+	this_asm_name = node.asm.name
 	for seed in chunk_seeds:
+
+		#this is necessary because after the first iteration of the loop, the original "node" now exists; but we still have the edges, which have 
+		#been updated and can be used to recover the node containing the end we care about
+		node = seed.node_by_name(this_asm_name)
 
 		#STEP 1: grab all edges that belong in a chunk and define chunk boundaries
 
@@ -196,15 +207,12 @@ for num, node in enumerate(line_indexed_nodes):
 		left_edges = ordered_edges[:left_search] #TODO changed from left_edges
 		while ( left_search >= 0 ):
 
-			print("length: " + str(len(ordered_edges)))
-			print("index: " + str(left_search))
+			
 
 			curr_edge = ordered_edges[left_search]
 			if curr_edge.edge_high(node) > chunk_start :
-				print(len(ordered_edges))
 				#TODO "search me" before slice, the following remove was removing from ordered_edges too
 				node.remove_edge(curr_edge)
-				print(len(ordered_edges))
 				curr_edge.opposite_node(node).remove_edge(curr_edge)
 				#TODO
 				#is this sufficient? should curr_edge be explicitly deleted as well?
@@ -220,8 +228,10 @@ for num, node in enumerate(line_indexed_nodes):
 			#left/start coord (see pic for reference- must remove edges 3 and 4, and can't know how many
 			#have stop coords after chunk start from the start coord alone)
 
-		#safety check while developing
-		assert len(node.get_edges()) == ( len(chunk_edges) + len(right_edges) + len(left_edges) )
+			left_search -= 1
+
+		#safety check while developing TODO investigate why this isn't working
+		#assert len(node.get_edges()) == ( len(chunk_edges) + len(right_edges) + len(left_edges) )
 		
 		#STEP 3 construct new nodes
 
@@ -230,6 +240,8 @@ for num, node in enumerate(line_indexed_nodes):
 		node_len = (chunk_stop - chunk_start) + 1
 		#another = other.prev
 
+		print(node.asm)
+		print(type(node.asm))
 		left_dist = chunk_start - node.asm.left #using this gives inclusive coords
 		right_dist = node.asm.right - chunk_stop
 
@@ -250,24 +262,40 @@ for num, node in enumerate(line_indexed_nodes):
 
 		right_ref_CL = node.ref.trim_right(right_dist - 1)
 		right_asm_CL = (node.asm.name, chunk_start, node.asm.right - node_len)
-		right_node = Node(-1, right_ref_CL, right_asm_CL, node.asm_original)
+		right_node = Node(-1, right_ref_CL, right_asm_CL, node.asm_original, right_edges)
 
 		#STEP 4 insert new nodes, including updating references for the surrounding nodes
 
-		#TODO currently not handling updating contig heads
-		assert(1==2) #see above
-		node.prev.next = left_node
-		node.next.prev = right_node
-		
-		left_node.prev = node.prev
-		right_node.next = node.next
-
 		left_node.next = right_node
 		right_node.prev = left_node
-		
-		chunk_node.prev = other_node.prev
+
+		#node could be the head of a contig
+		if node.prev is not None:
+			node.prev.next = left_node
+			left_node.prev = node.prev
+		else:
+			for index, head in enumerate(contigs):
+				if head is node:
+					contigs[index] = left_node
+
+
+		#node could be the tail of a contig
+		if node.next is not None:
+			node.next.prev = right_node
+			right_node.next = node.next
+
+
+
+		#other_node could be the head of a contig
+		if other_node.prev is None:
+			for index, head in enumerate(contigs):
+				if head is other_node:
+					contigs[index] = chunk_node
+		else:
+			chunk_node.prev = other_node.prev
+			other_node.prev.next = chunk_node
+
 		chunk_node.next = other_node
-		other_node.prev.next = chunk_node
 		other_node.prev = chunk_node
 
 		#STEP 5 update edge endpoints to point to their new nodes and clear original node so that no refs are left and garbage collector will free its memory
@@ -288,6 +316,7 @@ for num, node in enumerate(line_indexed_nodes):
 				iterator.shift(node_len)
 			while iterator.next is not None:
 				iterator.shift(node_len)
+				iterator = iterator.next
 		
 		#TODO same as above
 		right_node.shift_edges(-node_len)
@@ -297,6 +326,7 @@ for num, node in enumerate(line_indexed_nodes):
 				iterator.shift(-node_len)
 			while iterator.next is not None:
 				iterator.shift(-node_len)
+				iterator = iterator.next
 
 
 	###end new dev

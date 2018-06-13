@@ -61,7 +61,10 @@ class Node:
 		self._edges_sorted = False
 
 	def remove_edge(self, edge):
-		self._edges.remove(edge)
+		try:
+			self._edges.remove(edge)
+		except ValueError:
+			pass
 
 	def get_edges(self):
 		return self._edges
@@ -96,7 +99,7 @@ class Node:
 
 	def shift_edges(self, num):
 		for edge in self._edges:
-			edge.shift(num)
+			edge.shift(self, num)
 
 	def shift(self, num):
 		self.shift_coords(num)
