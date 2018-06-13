@@ -22,6 +22,11 @@ class Edge:
 		self.asm2 = ContigLocation(_asm_name2, o_a_s, o_a_e)
 		self.node2 = other_node
 
+		if this_node is None:
+			assert(5==6)
+		if other_node is None:
+			assert(6==7)
+
 		self.length = abs ( self.asm1.midpoint() - self.asm2.midpoint() )
 
 		if ( not self.asm1.same_contig(self.asm2) ):
@@ -127,6 +132,6 @@ class Edge:
 			return "Bad node passed to edge"
 
 	def __str__(self):
-		return str(self.node1.asm) + "\t" + (self.node2.asm)
+		return str(self.node1.asm) + "\t" + str(self.node2.asm)
 
 

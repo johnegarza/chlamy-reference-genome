@@ -14,6 +14,9 @@ if not os.path.exists(sys.argv[1]):
 if not os.path.exists(sys.argv[2]):
 	sys.exit("Error: File '%s' not found" % sys.argv[2])
 
+############# TO RUN ###############
+#	from graph directory:
+#	python node_list_generator.py htcf_data/node_list.tsv delta_mapped_ends.txt
 
 alignment_file = sys.argv[1] #tab_delim_results.tsv
 fosmid_pairs = sys.argv[2]
@@ -125,7 +128,11 @@ for num, node in enumerate(line_indexed_nodes):
 	#find all other assembly scaffolds this node may have edges to; will choose one edges for each different scaffold, then use that as a "seed" to build up 
 	#a "chunk", a portion of the node that likely belongs on that other scaffold and not the current one
 	for edge in node.get_edges():
-		a_name = edge.opposite_node(node).asm.name
+		try:
+			a_name = edge.opposite_node(node).asm.name
+		except AttributeError:
+			print(edge)
+
 		if ( (edge.weight == -10) and (a_name not in bad_edges) ):
 			bad_edges.add(a_name)
 			chunk_seeds.append(edge)
@@ -177,7 +184,7 @@ for num, node in enumerate(line_indexed_nodes):
 		right_search = index + 1
 		#to be modified (anticipating future parallelization of portions of the code)
 		length = len(ordered_edges)
-		while ( right_search < length) ):
+		while ( right_search < length):
 			curr_edge = ordered_edges[right_search]
 			if curr_edge.opposite_node(node) is other_node:
 				chunk_edges.add(curr_edge)
@@ -190,6 +197,9 @@ for num, node in enumerate(line_indexed_nodes):
 
 		chunk_edges.add(seed)
 
+		#right_search and left_search are exclusive coordinates relative to the edges placed in chunk_edges from ordered_edges
+		assert( len(chunk_edges) == (right_search - left_search - 1) )
+
 		#STEP 2 separate the remaining edges to make sure none accidentally have an endpoint cut in half when the chunk is removed
 		#for reference, see pic from 6/6/18 ~12:15 PM TODO download and include in repo
 		
@@ -199,6 +209,7 @@ for num, node in enumerate(line_indexed_nodes):
 			if curr_edge.edge_low(node) < chunk_stop :
 				node.remove_edge(curr_edge)
 				curr_edge.opposite_node(node).remove_edge(curr_edge)
+#				print("remove edge " + str(curr_edge) )
 				#TODO
 				#is this sufficient? should curr_edge be explicitly deleted as well?
 				#should the removal of an edge be noted? this may be dangerous
@@ -217,6 +228,7 @@ for num, node in enumerate(line_indexed_nodes):
 				#TODO "search me" before slice, the following remove was removing from ordered_edges too
 				node.remove_edge(curr_edge)
 				curr_edge.opposite_node(node).remove_edge(curr_edge)
+#				print("remove edge " + str(curr_edge) )
 				#TODO
 				#is this sufficient? should curr_edge be explicitly deleted as well?
 				#should the removal of an edge be noted? this may be dangerous
@@ -240,6 +252,14 @@ for num, node in enumerate(line_indexed_nodes):
 			print(len(chunk_edges))
 			print(len(right_edges))
 			print(len(left_edges))
+
+			moved_edges = []
+			moved_edges.extend(chunk_edges)
+			moved_edges.extend(right_edges)
+			moved_edges.extend(left_edges)
+			lost_edges = list(set(node.get_edges()).difference(moved_edges))
+			for thing in lost_edges:
+				print(thing)
 		
 		#STEP 3 construct new nodes
 
