@@ -34,6 +34,10 @@ class Node:
 		self.ref = ref_CL #ContigLocation defining where this node aligns to in the reference
 		self.asm = asm_CL #ContigLocation defining where this node belong in the assembly
 
+		if ref_CL is None:
+			assert(2==3)
+		if asm_CL is None:
+			assert(3==4)
 		#asm_original is a ContigLocation defining where this node was originally placed in the assembly
 		if asm_original_CL is None:
 			#TODO

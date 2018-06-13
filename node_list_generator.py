@@ -135,7 +135,9 @@ for num, node in enumerate(line_indexed_nodes):
 	#TODO how well does this work for ref-asm reversed alignments
 
 	this_asm_name = node.asm.name
+#	test_num = 0
 	for seed in chunk_seeds:
+#		test_num += 1
 
 		#this is necessary because after the first iteration of the loop, the original "node" now exists; but we still have the edges, which have 
 		#been updated and can be used to recover the node containing the end we care about
@@ -174,7 +176,8 @@ for num, node in enumerate(line_indexed_nodes):
 
 		right_search = index + 1
 		#to be modified (anticipating future parallelization of portions of the code)
-		while ( right_search < len(ordered_edges) ):
+		length = len(ordered_edges)
+		while ( right_search < length) ):
 			curr_edge = ordered_edges[right_search]
 			if curr_edge.opposite_node(node) is other_node:
 				chunk_edges.add(curr_edge)
@@ -232,6 +235,11 @@ for num, node in enumerate(line_indexed_nodes):
 
 		#safety check while developing TODO investigate why this isn't working
 		#assert len(node.get_edges()) == ( len(chunk_edges) + len(right_edges) + len(left_edges) )
+		if len(node.get_edges()) != ( len(chunk_edges) + len(right_edges) + len(left_edges) ):
+			print(len(node.get_edges()))
+			print(len(chunk_edges))
+			print(len(right_edges))
+			print(len(left_edges))
 		
 		#STEP 3 construct new nodes
 
@@ -240,8 +248,9 @@ for num, node in enumerate(line_indexed_nodes):
 		node_len = (chunk_stop - chunk_start) + 1
 		#another = other.prev
 
-		print(node.asm)
-		print(type(node.asm))
+#		print(test_num)
+#		print(node.asm)
+#		print(type(node.asm))
 		left_dist = chunk_start - node.asm.left #using this gives inclusive coords
 		right_dist = node.asm.right - chunk_stop
 
@@ -257,11 +266,11 @@ for num, node in enumerate(line_indexed_nodes):
 		chunk_node = Node(-1, chunk_ref_CL, chunk_asm_CL, node.asm_original, chunk_edges)
 
 		left_ref_CL = node.ref.trim_left(left_dist - 1) #-1 because otherwise this and prev node would start at the exact same coord; this CL should have exclusive coords
-		left_asm_CL = (node.asm.name, node.asm.left, chunk_start - 1)
+		left_asm_CL = ContigLocation(node.asm.name, node.asm.left, chunk_start - 1)
 		left_node = Node(-1, left_ref_CL, left_asm_CL, node.asm_original, left_edges)
 
 		right_ref_CL = node.ref.trim_right(right_dist - 1)
-		right_asm_CL = (node.asm.name, chunk_start, node.asm.right - node_len)
+		right_asm_CL = ContigLocation(node.asm.name, chunk_start, node.asm.right - node_len)
 		right_node = Node(-1, right_ref_CL, right_asm_CL, node.asm_original, right_edges)
 
 		#STEP 4 insert new nodes, including updating references for the surrounding nodes
@@ -327,6 +336,8 @@ for num, node in enumerate(line_indexed_nodes):
 			while iterator.next is not None:
 				iterator.shift(-node_len)
 				iterator = iterator.next
+
+		break
 
 
 	###end new dev
