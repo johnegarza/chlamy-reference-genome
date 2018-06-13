@@ -131,7 +131,10 @@ for num, node in enumerate(line_indexed_nodes):
 	for seed in chunk_seeds:
 
 		#STEP 1: grab all edges that belong in a chunk and define chunk boundaries
-		ordered_edges = node.get_sorted_edges()
+
+		#without slice, this is just a reference to the node edge list, so when things are removed from there they're removed from ordered edges too
+		#TODO make sure this problem isn't happening anywhere else- see other todo labeled "search me"
+		ordered_edges = node.get_sorted_edges()[:] 
 		other_node = seed.opposite_node(node)
 
 		chunk_edges = set()
@@ -190,17 +193,28 @@ for num, node in enumerate(line_indexed_nodes):
 				break
 			right_search += 1
 
-		left_edges = ordered_edges[:left_edges]
+		left_edges = ordered_edges[:left_search] #TODO changed from left_edges
 		while ( left_search >= 0 ):
+
+			print("length: " + str(len(ordered_edges)))
+			print("index: " + str(left_search))
+
 			curr_edge = ordered_edges[left_search]
 			if curr_edge.edge_high(node) > chunk_start :
+				print(len(ordered_edges))
+				#TODO "search me" before slice, the following remove was removing from ordered_edges too
 				node.remove_edge(curr_edge)
+				print(len(ordered_edges))
 				curr_edge.opposite_node(node).remove_edge(curr_edge)
 				#TODO
 				#is this sufficient? should curr_edge be explicitly deleted as well?
 				#should the removal of an edge be noted? this may be dangerous
 				
-				left_edges.remove(curr_edge)
+				#TODO should I be doing this
+				try:
+					left_edges.remove(curr_edge)
+				except ValueError:
+					pass
 
 			#no else- in this while case, we must check until the end, due to the ordering being based on the
 			#left/start coord (see pic for reference- must remove edges 3 and 4, and can't know how many
