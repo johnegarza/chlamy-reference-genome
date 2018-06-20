@@ -1,0 +1,234 @@
+from collections import defaultdict
+import sys, os, csv, re, fnmatch
+from block_node import Node
+from fosmid_edge import Edge
+import pickle
+import argparse
+import copy
+from contig_loc import ContigLocation
+
+if len(sys.argv) < 3:
+	sys.exit("Usage: %s block_list_tab_delimited indexed_fosmid_pairs" % sys.argv[0])
+if not os.path.exists(sys.argv[1]):
+	sys.exit("Error: File '%s' not found" % sys.argv[1])
+if not os.path.exists(sys.argv[2]):
+	sys.exit("Error: File '%s' not found" % sys.argv[2])
+
+############# TO RUN ###############
+#	from graph directory:
+#	python main.py htcf_data/node_list.tsv delta_mapped_ends.txt
+
+alignment_file = sys.argv[1] #tab_delim_results.tsv
+fosmid_pairs = sys.argv[2]
+
+'''
+parser = argparse.ArgumentParser(description='creates nodes and edges, then associates them together into a graph')
+parser.add_argument('alignments', metavar='*.tsv', help='a tab delimited reference to assembly alignment file')
+parser.add_argument('fosmids', metavar='*.tsv', help = 'a fosmid paired end file')
+args = parser.parse_args()
+
+alignment_file = args.alignments #tab_delim_results.tsv
+fosmid_pairs = args.fosmids
+'''
+
+contigs = [] #contains head node for each contig
+line_indexed_nodes = [] #to retrieve node at line n, call line_indexed_nodes[n-1]
+#edges = [] #adding to help with active development
+bad_edges = [] 	#will attempt to use this for iterating over bad edges and moving them, instead of 
+		#iterating over nodes and searching each one's list of edges
+
+with open(alignment_file) as a_f:
+	alignment_data = csv.reader(a_f, delimiter="\t")
+
+	#TODO refactor to use Scaffold (upcoming) data structure
+
+	#initialize some dummy data so my script can dynamically begin construction from the 
+	#beginning of the file, instead of needing to hard code the initial case
+	prev_scaf = " "
+
+	dummy_CL = ContigLocation("dummy", 0, 0)
+	dummy_node = Node(-1, dummy_CL, dummy_CL)
+
+	curr_node = dummy_node
+
+	for line_id, block in enumerate(alignment_data):
+
+		#load in data from the current line
+		asm_scaf = block[0]
+		asm_start = int(block[1])
+		asm_stop = int(block[2])
+		ref_chr = block[3]
+		ref_start = int(block[4])
+		ref_stop = int(block[5])
+		line_num = int(block[8])
+
+		if(prev_scaf != asm_scaf): #end of an assembly contig
+
+			curr_node.next = None #TODO may not be necessary
+
+			curr_ref_CL = ContigLocation(ref_chr, ref_start, ref_stop)
+			curr_asm_CL = ContigLocation(asm_scaf, asm_start, asm_stop)
+			curr_node = Node(line_num, curr_ref_CL, curr_asm_CL)
+
+			contigs.append(curr_node)
+
+			line_indexed_nodes.append(curr_node)
+
+			prev_scaf = asm_scaf
+			
+			#TODO isn't this just an else case ~~~ 6/7/18- why not?
+			continue #work is done for this cycle, and thanks to python's scope (or lack thereof)
+				 #we can just skip to the next iteration of the loop
+
+		new_ref_CL = ContigLocation(ref_chr, ref_start, ref_stop)
+		new_asm_CL = ContigLocation(asm_scaf, asm_start, asm_stop)
+		new_node = Node(line_num, new_ref_CL, new_asm_CL, p_node = curr_node)
+
+		curr_node.next = new_node
+		curr_node = new_node
+
+		line_indexed_nodes.append(curr_node)
+
+		prev_scaf = asm_scaf
+
+with open(fosmid_pairs) as f_p:
+
+	pair_data = csv.reader(f_p, delimiter="\t")
+
+	for pair in pair_data:
+
+
+		left_ref_start = int(pair[1])
+		left_ref_stop = int(pair[2])
+		left_asm_start = int(pair[4])
+		left_asm_stop = int(pair[5])
+		left_block_line = int(pair[7])
+
+		right_ref_start = int(pair[9])
+		right_ref_stop = int(pair[10])
+		right_asm_start = int(pair[12])
+		right_asm_stop = int(pair[13])
+		right_block_line = int(pair[15])
+
+
+		node1 = line_indexed_nodes[left_block_line - 1]
+		node2 = line_indexed_nodes[right_block_line - 1]
+
+		edge = Edge(node1, node2, left_ref_start, left_ref_stop, left_asm_start, left_asm_stop, right_ref_start, right_ref_stop, right_asm_start, right_asm_stop)
+		node1.add_edge(edge)
+		node2.add_edge(edge)
+		if edge.weight == -10:
+			bad_edges.append(edge)
+		#edges.append(edge) #TODO if no proper use for this, remove; will just lead to memory leaks, as this keeps edges deleted later on still alive due to the reference
+
+'''
+tally = [0]*200
+for cnum, contig_head in enumerate(contigs):
+	
+	iterator = contig_head
+	while(iterator is not None):
+		counter = 0
+		for edge in iterator._edges:
+			if edge.weight == -10:
+				counter += 1
+#		if counter != 0:
+#			print(str(counter) + "/" + str(len(iterator._edges)) + " bad edges")
+		tally[counter] += 1
+		iterator = iterator.next
+
+for place, val in enumerate(tally):
+	if val != 0:
+		print( str(place) + " edges: " + str(val) + " nodes" )
+'''
+
+#don't need this anymore- clear memory and unnecessary references that may keep nodes removed from main assembly alive and "orphaned"
+lined_indexed_nodes = []
+
+while bad_edges: #run as long as bad_edges is not empty
+
+	seed_edge = bad_edges[0]
+
+	#arbitrarily chose to start with node1; will work with node2 later
+	bad_node = seed_edge.node1
+
+	search_space = bad_node.get_sorted_edges()
+
+	chunk_lo = float('inf')
+	chunk_hi = float('-inf')
+	
+	for edge in search_space:
+
+		if edge.edge_low(bad_node) < chunk_lo:
+			chunk_lo = edge.edge_low(bad_node)
+
+		if edge.edge_high(bad_node) > chunk_hi:
+			chunk_hi = edge.edge_high(bad_node)
+
+	left_edges = []
+	left_border_edges = []
+	chunk_edges = []
+	right_border_edges = []
+	right_edges = []
+
+	stop = len(search_space)
+	index = 0
+	curr_edge = search_space[0]
+
+	#TODO note: in the following 2 while loops, index < stop and index >= stop may be redundant, if needed at all
+	#second condition shouldn't be necessary; shouldn't affect performance, but may reevaluate later
+	while ( curr_edge.edge_low(bad_node) < chunk_lo ) and (index < stop):
+
+		if curr_edge.edge_high(bad_node) <= chunk_lo:
+			left_edges.append(curr_edge)
+		else:
+			left_border_edges.append(curr_edge)
+
+		index += 1
+		if index >= stop: #for an edge case that may not be possible; reevaluate later
+			break
+		curr_edge = search_space[index]
+
+	#second condition shouldn't be necessary; shouldn't affect performance, but may reevaluate later
+	while ( curr_edge.edge_low(bad_node) < chunk_hi ) and (index < stop):
+
+		if curr_edge.edge_high(bad_node) <= chunk_hi:
+			chunk_edges.append(curr_edge)
+		else:
+			right_border_edges.append(curr_edge)
+
+		index += 1
+		if index >= stop: #for an edge case that may not be possible; reevaluate later
+			break
+		curr_edge = search_space[index]
+
+	while index < stop:
+		right_edges.append(curr_edge)
+		index += 1
+		if index >= stop:
+			break
+		curr_edge = search_space[index]
+
+	total_len = len(left_edges) + len(left_border_edges) + len(chunk_edges) + len(right_border_edges) + len(right_edges)
+	assert( total_len == stop )
+	print("good")
+
+	b_e_temp_set = set(bad_edges)
+	b_e_temp_set.difference_update(chunk_edges) #anything in chunk_edges that's also in b_e will be removed from b_e
+	bad_edges = list(b_e_temp_set)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
