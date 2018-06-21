@@ -145,9 +145,6 @@ for place, val in enumerate(tally):
 		print( str(place) + " edges: " + str(val) + " nodes" )
 '''
 
-for node in line_indexed_nodes:
-	node.uniqueness()
-
 #don't need this anymore- clear memory and unnecessary references that may keep nodes removed from main assembly alive and "orphaned"
 lined_indexed_nodes = []
 
@@ -164,9 +161,9 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	search_space = bad_node.get_sorted_edges()
 
-	print(debug_index)
-	for edge in search_space:
-		print(str(edge))
+	print("round " + str(debug_index) + " / " + str(len(bad_edges)) )
+#	for edge in search_space:
+#		print(str(edge))
 
 	chunk_lo = float('inf')
 	chunk_hi = float('-inf')
@@ -243,11 +240,16 @@ while bad_edges: #run as long as bad_edges is not empty
 	#TODO these edges will be important in the real algorithm, but for now while testing basic ops these will just be ignored
 	for edge in left_border_edges:
 		bad_node.remove_edge(edge)
-		edge.opposite_node(bad_node).remove_edge(edge)
+		temp = edge.opposite_node(bad_node)
+		if temp is not bad_node: #fix removal failures when both edge endpoints are in the same node
+			temp.remove_edge(edge)
 	left_border_edges = []
+
 	for edge in right_border_edges:
 		bad_node.remove_edge(edge)
-		edge.opposite_node(bad_node).remove_edge(edge)
+		temp = edge.opposite_node(bad_node)
+		if temp is not bad_node: #fix removal failures when both edge endpoints are in the same node
+			temp.remove_edge(edge)
 	right_border_edges = []
 
 	######################## CREATE NEW NODES ####################
