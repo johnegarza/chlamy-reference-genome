@@ -60,6 +60,11 @@ class Node:
 		self.prev = p_node
 		self.next = n_node
 
+	#used in testing issue, see last commit
+	def uniqueness(self):
+		temp = set(self._edges)
+		assert( len(self._edges) == len(temp) )
+
 	def add_edge(self, edge):
 		self._edges.append(edge)
 		self._edges_sorted = False
