@@ -156,6 +156,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	#arbitrarily chose to start with node1; will work with node2 later
 	bad_node = seed_edge.node1
 	other_node = seed_edge.node2
+	assert(bad_node is not other_node) #by definition this should be correct
 
 	### STEP 1 Group up edges ###
 
@@ -225,9 +226,13 @@ while bad_edges: #run as long as bad_edges is not empty
 #	print("good")
 #	print( str(len(chunk_edges)) + " " + str(stop) )
 
+	assert(seed_edge in chunk_edges)
+
 	b_e_temp_set = set(bad_edges)
 	b_e_temp_set.difference_update(chunk_edges) #anything in chunk_edges that's also in b_e will be removed from b_e
 	bad_edges = list(b_e_temp_set)
+
+	print(len(chunk_edges))
 
 	'''
 	if (len(left_border_edges) != 0):
