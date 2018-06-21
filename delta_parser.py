@@ -199,7 +199,7 @@ with open(fosmid_file) as f_f:
 
 			
 			#with the block at the end removed, the following block does nothing
-			'''
+			
 			#TODO min/max might only be needed on lines 197 and 198- double check and remove
 			#the 2 min and 2 max calls directly below if this is the case
 			end1_scaf = str(left_tuple[3])
@@ -208,20 +208,41 @@ with open(fosmid_file) as f_f:
 			end2_scaf = str(right_tuple[3])
 			end2_start = min( int(right_tuple[4]), int(right_tuple[5]) )
 			end2_stop = max( int(right_tuple[4]), int(right_tuple[5]) )
-			'''
 
-			ans = []
-			ans.append(left_name)
-			ans.extend( [str(x) for x in left_tuple[1:]] )
-			ans.append( str(line[3]) ) #fosmid ID, VTP*
-			#ans.append( str(end1_line) ) 
-			ans.append(str(left_line))
-			ans.append( right_name )
-			ans.extend( [str(x) for x in right_tuple[1:]] )
-			ans.append( str(line[8]) ) #fosmid ID, VTP*
-			#ans.append( str(end2_line) )
-			ans.append(str(right_line))
-			print("\t".join(ans).strip())
+			with open(block_file) as blocks:
+				block_data = csv.reader(blocks, delimiter="\t")
+			
+				end1_line = 0
+				end2_line = 0
+
+				for block in block_data:
+
+					chrom = str(block[0])
+					start = min( int(block[1]), int(block[2]) )
+					stop = max( int(block[1]), int(block[2]) )
+					file_line = int(block[8])
+
+					if ( (end1_scaf == chrom) and (end1_start >= start) and (end1_stop <= stop) ):
+						end1_line = file_line
+
+					if ( (end2_scaf == chrom) and (end2_start >= start) and (end2_stop <= stop) ):
+						end2_line = file_line
+
+
+			if ( (end1_line != 0) and (end2_line != 0) ):
+
+				ans = []
+				ans.append(left_name)
+				ans.extend( [str(x) for x in left_tuple[1:]] )
+				ans.append( str(line[3]) ) #fosmid ID, VTP*
+				ans.append( str(end1_line) ) 
+				#ans.append(str(left_line))
+				ans.append( right_name )
+				ans.extend( [str(x) for x in right_tuple[1:]] )
+				ans.append( str(line[8]) ) #fosmid ID, VTP*
+				ans.append( str(end2_line) )
+				#ans.append(str(right_line))
+				print("\t".join(ans).strip())
 
 
 

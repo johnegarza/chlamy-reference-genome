@@ -161,6 +161,18 @@ while bad_edges: #run as long as bad_edges is not empty
 	### STEP 1 Group up edges ###
 
 	search_space = bad_node.get_sorted_edges()
+	assert(len(search_space) > 0)
+
+	if seed_edge not in search_space:
+		print(str(seed_edge))
+		print(str(seed_edge.node1))
+		print(id(seed_edge.node1))
+		print(str(seed_edge.node2))
+		print(id(seed_edge.node2))
+		print(str(bad_node))
+		print(id(bad_node))
+	assert(seed_edge in search_space)
+
 
 	print("round " + str(debug_index) + " / " + str(len(bad_edges)) )
 #	for edge in search_space:
@@ -226,7 +238,13 @@ while bad_edges: #run as long as bad_edges is not empty
 #	print("good")
 #	print( str(len(chunk_edges)) + " " + str(stop) )
 
+	if seed_edge not in chunk_edges:
+		print(str(seed_edge))
+		print(str(chunk_lo) + "-" + str(chunk_hi))
 	assert(seed_edge in chunk_edges)
+
+	assert(seed_edge not in left_border_edges)
+	assert(seed_edge not in right_border_edges)
 
 	b_e_temp_set = set(bad_edges)
 	b_e_temp_set.difference_update(chunk_edges) #anything in chunk_edges that's also in b_e will be removed from b_e
@@ -241,7 +259,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	if (len(right_border_edges) != 0):
 		print("rb edges: " + str(len(right_border_edges)))
 	'''
-
+	'''
 	#TODO these edges will be important in the real algorithm, but for now while testing basic ops these will just be ignored
 	for edge in left_border_edges:
 		bad_node.remove_edge(edge)
@@ -256,7 +274,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		if temp is not bad_node: #fix removal failures when both edge endpoints are in the same node
 			temp.remove_edge(edge)
 	right_border_edges = []
-
+	'''
 	######################## CREATE NEW NODES ####################
 	'''
 	node_len = (chunk_hi - chunk_lo) + 1
@@ -285,6 +303,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	nodes_len = (left_node.asm.right - left_node.asm.left) + (chunk_node.asm.right - chunk_node.asm.left) + (right_node.asm.right - right_node.asm.left) + 2
 	assert(full_len == nodes_len)
 	'''
+	assert(seed_edge in bad_node.get_sorted_edges())
+
 	debug_index += 1
 
 
