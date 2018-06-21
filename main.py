@@ -259,8 +259,13 @@ while bad_edges: #run as long as bad_edges is not empty
 	if (len(right_border_edges) != 0):
 		print("rb edges: " + str(len(right_border_edges)))
 	'''
-	'''
+	
 	#TODO these edges will be important in the real algorithm, but for now while testing basic ops these will just be ignored
+	b_e_temp_set = set(bad_edges)
+	b_e_temp_set.difference_update(left_border_edges)
+	b_e_temp_set.difference_update(right_border_edges)
+	bad_edges = list(b_e_temp_set)
+
 	for edge in left_border_edges:
 		bad_node.remove_edge(edge)
 		temp = edge.opposite_node(bad_node)
@@ -274,7 +279,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		if temp is not bad_node: #fix removal failures when both edge endpoints are in the same node
 			temp.remove_edge(edge)
 	right_border_edges = []
-	'''
+	#end TODO	
+
 	######################## CREATE NEW NODES ####################
 	'''
 	node_len = (chunk_hi - chunk_lo) + 1
