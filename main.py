@@ -148,7 +148,6 @@ for place, val in enumerate(tally):
 #don't need this anymore- clear memory and unnecessary references that may keep nodes removed from main assembly alive and "orphaned"
 lined_indexed_nodes = []
 
-debug_index = 0
 while bad_edges: #run as long as bad_edges is not empty
 
 	seed_edge = bad_edges[0]
@@ -156,27 +155,10 @@ while bad_edges: #run as long as bad_edges is not empty
 	#arbitrarily chose to start with node1; will work with node2 later
 	bad_node = seed_edge.node1
 	other_node = seed_edge.node2
-	assert(bad_node is not other_node) #by definition this should be correct
 
 	### STEP 1 Group up edges ###
 
 	search_space = bad_node.get_sorted_edges()
-	assert(len(search_space) > 0)
-
-	if seed_edge not in search_space:
-		print(str(seed_edge))
-		print(str(seed_edge.node1))
-		print(id(seed_edge.node1))
-		print(str(seed_edge.node2))
-		print(id(seed_edge.node2))
-		print(str(bad_node))
-		print(id(bad_node))
-	assert(seed_edge in search_space)
-
-
-	print("round " + str(debug_index) + " / " + str(len(bad_edges)) )
-#	for edge in search_space:
-#		print(str(edge))
 
 	chunk_lo = float('inf')
 	chunk_hi = float('-inf')
@@ -235,31 +217,11 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	total_len = len(left_edges) + len(left_border_edges) + len(chunk_edges) + len(right_border_edges) + len(right_edges)
 	assert( total_len == stop )
-#	print("good")
-#	print( str(len(chunk_edges)) + " " + str(stop) )
-
-	if seed_edge not in chunk_edges:
-		print(str(seed_edge))
-		print(str(chunk_lo) + "-" + str(chunk_hi))
-	assert(seed_edge in chunk_edges)
-
-	assert(seed_edge not in left_border_edges)
-	assert(seed_edge not in right_border_edges)
 
 	b_e_temp_set = set(bad_edges)
 	b_e_temp_set.difference_update(chunk_edges) #anything in chunk_edges that's also in b_e will be removed from b_e
 	bad_edges = list(b_e_temp_set)
 
-	print(len(chunk_edges))
-
-	'''
-	if (len(left_border_edges) != 0):
-		print("lb edges: " + str(len(left_border_edges)))
-
-	if (len(right_border_edges) != 0):
-		print("rb edges: " + str(len(right_border_edges)))
-	'''
-	
 	#TODO these edges will be important in the real algorithm, but for now while testing basic ops these will just be ignored
 	b_e_temp_set = set(bad_edges)
 	b_e_temp_set.difference_update(left_border_edges)
@@ -282,7 +244,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	#end TODO	
 
 	######################## CREATE NEW NODES ####################
-	'''
+	
 	node_len = (chunk_hi - chunk_lo) + 1
 
 	left_dist = chunk_lo - bad_node.asm.left #inclusive coords
@@ -308,10 +270,68 @@ while bad_edges: #run as long as bad_edges is not empty
 	full_len = bad_node.asm.right - bad_node.asm.left
 	nodes_len = (left_node.asm.right - left_node.asm.left) + (chunk_node.asm.right - chunk_node.asm.left) + (right_node.asm.right - right_node.asm.left) + 2
 	assert(full_len == nodes_len)
-	'''
-	assert(seed_edge in bad_node.get_sorted_edges())
+	
+	####INSERT NEW NODES####
+	
+	left_node.next = right_node
+	right_node.prev = left_node
 
-	debug_index += 1
+	#node could be the head of a contig
+	if bad_node.prev is not None:
+		bad_node.prev.next = left_node
+		left_node.prev = bad_node.prev
+	else:
+		for index, head in enumerate(contigs):
+			if head is bad_node:
+				contigs[index] = left_node
+
+	#node could be the tail of a contig
+	if bad_node.next is not None:
+		bad_node.next.prev = right_node
+		right_node.next = bad_node.next
+
+
+
+	#other_node could be the head of a contig
+	if other_node.prev is None:
+		for index, head in enumerate(contigs):
+			if head is other_node:
+				contigs[index] = chunk_node
+	else:
+		chunk_node.prev = other_node.prev
+		other_node.prev.next = chunk_node
+
+	chunk_node.next = other_node
+	other_node.prev = chunk_node
+
+	print("befor edge update: " + str(sys.getrefcount(bad_node)))
+
+	###### UPDATE EDGE ENDPOINTS ########
+	left_node.new_edge_endpoints(bad_node)
+	right_node.new_edge_endpoints(bad_node)
+	chunk_node.new_edge_endpoints(bad_node)
+	bad_node.clear()
+	
+	print("after edge update: " + str(sys.getrefcount(bad_node)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
