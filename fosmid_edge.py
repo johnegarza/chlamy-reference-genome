@@ -132,6 +132,6 @@ class Edge:
 			return "Bad node passed to edge"
 
 	def __str__(self):
-		return str(self.node1.asm) + "\t" + str(self.node2.asm)
+		return str(self.asm1) + "\t" + str(self.asm2)
 
 

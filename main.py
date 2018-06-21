@@ -16,7 +16,7 @@ if not os.path.exists(sys.argv[2]):
 
 ############# TO RUN ###############
 #	from graph directory:
-#	python main.py htcf_data/node_list.tsv delta_mapped_ends.txt
+#	python main.py htcf_data/node_list.tsv unique_mapped_ends.txt
 
 alignment_file = sys.argv[1] #tab_delim_results.tsv
 fosmid_pairs = sys.argv[2]
@@ -144,24 +144,32 @@ for place, val in enumerate(tally):
 #don't need this anymore- clear memory and unnecessary references that may keep nodes removed from main assembly alive and "orphaned"
 lined_indexed_nodes = []
 
+debug_index = 0
 while bad_edges: #run as long as bad_edges is not empty
 
 	seed_edge = bad_edges[0]
 
 	#arbitrarily chose to start with node1; will work with node2 later
 	bad_node = seed_edge.node1
+	other_node = seed_edge.node2
+
+	### STEP 1 Group up edges ###
 
 	search_space = bad_node.get_sorted_edges()
+
+	print(debug_index)
+	for edge in search_space:
+		print(str(edge))
 
 	chunk_lo = float('inf')
 	chunk_hi = float('-inf')
 	
 	for edge in search_space:
 
-		if edge.edge_low(bad_node) < chunk_lo:
+		if edge.edge_low(bad_node) < chunk_lo and edge.opposite_node(bad_node) is other_node:
 			chunk_lo = edge.edge_low(bad_node)
 
-		if edge.edge_high(bad_node) > chunk_hi:
+		if edge.edge_high(bad_node) > chunk_hi and edge.opposite_node(bad_node) is other_node:
 			chunk_hi = edge.edge_high(bad_node)
 
 	left_edges = []
@@ -210,25 +218,60 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	total_len = len(left_edges) + len(left_border_edges) + len(chunk_edges) + len(right_border_edges) + len(right_edges)
 	assert( total_len == stop )
-	print("good")
+#	print("good")
+#	print( str(len(chunk_edges)) + " " + str(stop) )
 
 	b_e_temp_set = set(bad_edges)
 	b_e_temp_set.difference_update(chunk_edges) #anything in chunk_edges that's also in b_e will be removed from b_e
 	bad_edges = list(b_e_temp_set)
 
+	'''
+	if (len(left_border_edges) != 0):
+		print("lb edges: " + str(len(left_border_edges)))
+
+	if (len(right_border_edges) != 0):
+		print("rb edges: " + str(len(right_border_edges)))
+	'''
+
+	#TODO these edges will be important in the real algorithm, but for now while testing basic ops these will just be ignored
+	for edge in left_border_edges:
+		bad_node.remove_edge(edge)
+		edge.opposite_node(bad_node).remove_edge(edge)
+	left_border_edges = []
+	for edge in right_border_edges:
+		bad_node.remove_edge(edge)
+		edge.opposite_node(bad_node).remove_edge(edge)
+	right_border_edges = []
+
+	######################## CREATE NEW NODES ####################
+	'''
+	node_len = (chunk_hi - chunk_lo) + 1
+
+	left_dist = chunk_lo - bad_node.asm.left #inclusive coords
+	right_dist = bad_node.asm.right - chunk_hi
 
 
+	#TODO ref CL changes only work if nodes are a one-to-one mapping; is this accurate?
 
+	chunk_ref_CL = bad_node.ref.trim(left_dist, right_dist)
+	chunk_asm_CL = ContigLocation(other_node.asm.name, other_node.asm.left, other_node.asm.left + (node_len - 1) )
+	chunk_node = Node(-1, chunk_ref_CL, chunk_asm_CL, bad_node.asm_original, chunk_edges)
 
+	#TODO should this be      .trim_right?
+	left_ref_CL = bad_node.ref.trim_left(left_dist - 1) #-1 because otherwise this and prev node would start at the exact same coord; this CL should have exclusive coords
+	left_asm_CL = ContigLocation(bad_node.asm.name, bad_node.asm.left, chunk_lo - 1)
+	left_node = Node(-1, left_ref_CL, left_asm_CL, bad_node.asm_original, left_edges)
 
+	#TODO should this be       .trim_left?
+	right_ref_CL = bad_node.ref.trim_right(right_dist - 1)
+	right_asm_CL = ContigLocation(bad_node.asm.name, chunk_lo, bad_node.asm.right - node_len)
+	right_node = Node(-1, right_ref_CL, right_asm_CL, bad_node.asm_original, right_edges)
 
-
-
-
-
-
-
-
+	full_len = bad_node.asm.right - bad_node.asm.left
+	nodes_len = (left_node.asm.right - left_node.asm.left) + (chunk_node.asm.right - chunk_node.asm.left) + (right_node.asm.right - right_node.asm.left) + 2
+	assert(full_len == nodes_len)
+	'''
+	debug_index += 1
 
 
 

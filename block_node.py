@@ -63,12 +63,16 @@ class Node:
 	def add_edge(self, edge):
 		self._edges.append(edge)
 		self._edges_sorted = False
-
+	'''
 	def remove_edge(self, edge):
 		try:
 			self._edges.remove(edge)
 		except ValueError:
 			pass
+	'''
+	def remove_edge(self, edge):
+		self._edges.remove(edge)
+
 
 	def get_edges(self):
 		return self._edges
