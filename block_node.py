@@ -90,13 +90,8 @@ class Node:
 		for edge in self._edges:
 			if edge.node1 is old_node:
 				edge.node1 = self
-			elif edge.node2 is old_node:
+			if edge.node2 is old_node:
 				edge.node2 = self
-			else:
-				print(edge.node1)
-				print(edge.node2)
-				print(old_node)
-				assert(1==2)
 	def clear(self):
 		self.ref = None
 		self.asm = None
