@@ -161,8 +161,6 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	search_space = bad_node.get_sorted_edges()
 
-#	print("bad node edges: " + str(len(search_space)) )
-
 	chunk_lo = float('inf')
 	chunk_hi = float('-inf')
 	
@@ -307,68 +305,12 @@ while bad_edges: #run as long as bad_edges is not empty
 	chunk_node.next = other_node
 	other_node.prev = chunk_node
 
-#	print("befor edge update: " + str(sys.getrefcount(bad_node)))
-
 	###### UPDATE EDGE ENDPOINTS ########
 	left_node.new_edge_endpoints(bad_node)
 	right_node.new_edge_endpoints(bad_node)
 	chunk_node.new_edge_endpoints(bad_node)
 	bad_node.clear()
 	
-#	print("after edge update: " + str(sys.getrefcount(bad_node)))
-
-	refs = gc.get_referrers(bad_node)
-	if len(refs) > 1:
-		print( refs )
-
-	'''
-	recalc = []
-	for edge in bad_edges:
-		if (edge.node1 is bad_node) or (edge.node2 is bad_node):
-			recalc.append(bad_node)
-
-	print(len(recalc))
-	
-	b_e_temp_set = set(bad_edges)
-	b_e_temp_set.difference_update(recalc)
-	bad_edges = list(b_e_temp_set)
-	'''
-	''''
-	other_recalc = []
-	for edge in bad_node.get_edges():
-		if (edge.node1 is bad_node) or (edge.node2 is bad_node):
-			other_recalc.append(bad_node)
-
-	print(len(other_recalc))
-	'''
-	'''
-	ref_list = set()
-	for head in contigs:
-		node = head
-		while node is not None:
-			search_edges = node.get_edges()
-			for s_e in search_edges:
-				if ( (s_e.node1 is bad_node) or (s_e.node2 is bad_node) ):
-					ref_list.add(s_e)
-			node = node.next
-
-	for ref in ref_list:
-		if ref.node1 is bad_node:
-			if ref.node2 is other_node:
-				pass
-			else:
-				print("------------------------wat1")
-
-		elif ref.node2 is bad_node:
-			if ref.node1 is other_node:
-				pass
-			else:
-				print("wat2")
-
-		else:
-			assert(1==2)
-	'''
-#	print(len(ref_list))
 
 
 
