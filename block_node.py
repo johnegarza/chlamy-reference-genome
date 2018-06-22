@@ -92,6 +92,8 @@ class Node:
 				edge.node1 = self
 			if edge.node2 is old_node:
 				edge.node2 = self
+
+
 	def clear(self):
 		self.ref = None
 		self.asm = None

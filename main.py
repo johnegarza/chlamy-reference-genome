@@ -317,19 +317,22 @@ while bad_edges: #run as long as bad_edges is not empty
 	
 #	print("after edge update: " + str(sys.getrefcount(bad_node)))
 
-#	print( len(gc.get_referrers(bad_node)) )
+	refs = gc.get_referrers(bad_node)
+	if len(refs) > 1:
+		print( refs )
 
+	'''
 	recalc = []
 	for edge in bad_edges:
 		if (edge.node1 is bad_node) or (edge.node2 is bad_node):
 			recalc.append(bad_node)
 
 	print(len(recalc))
-
+	
 	b_e_temp_set = set(bad_edges)
 	b_e_temp_set.difference_update(recalc)
 	bad_edges = list(b_e_temp_set)
-
+	'''
 	''''
 	other_recalc = []
 	for edge in bad_node.get_edges():
@@ -338,7 +341,7 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	print(len(other_recalc))
 	'''
-
+	'''
 	ref_list = set()
 	for head in contigs:
 		node = head
@@ -364,7 +367,7 @@ while bad_edges: #run as long as bad_edges is not empty
 
 		else:
 			assert(1==2)
-
+	'''
 #	print(len(ref_list))
 
 
