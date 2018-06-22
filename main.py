@@ -310,8 +310,30 @@ while bad_edges: #run as long as bad_edges is not empty
 	right_node.new_edge_endpoints(bad_node)
 	chunk_node.new_edge_endpoints(bad_node)
 	bad_node.clear()
-	
 
+	
+	#STEP 6 propogate coordinate updates to all nodes (and their edges) that changed location due to the insertion/deletion
+
+	#TODO refactor so that chunk_node is part of the loop? removes many of the next lines and makes this cleaner overall
+	chunk_node.shift_edges(node_len) #coords have already been shifted during creation
+	if chunk_node.next is not None:
+		iterator = chunk_node.next
+		if iterator.next is None:
+			iterator.shift(node_len)
+		while iterator.next is not None:
+			iterator.shift(node_len)
+			iterator = iterator.next
+		
+	#TODO same as above
+	right_node.shift_edges(-node_len)
+	if right_node.next is not None:
+		iterator = right_node.next
+		if iterator.next is None:
+			iterator.shift(-node_len)
+		while iterator.next is not None:
+			iterator.shift(-node_len)
+			iterator = iterator.next
+	
 
 
 
