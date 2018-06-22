@@ -78,6 +78,23 @@ class Edge:
 		else:
 			assert(1==2)
 
+	def og_edge_low(self, node):
+		if node is self.node1:
+			return self.asm1_original.low()
+		elif node is self.node2:
+			return self.asm2_original.low()
+		else:
+			assert(1==2)
+
+	def og_edge_high(self, node):
+		if node is self.node1:
+			return self.asm1_original.high()
+		elif node is self.node2:
+			return self.asm2_original.high()
+		else:
+			assert(1==2)
+
+
 	#edge_start/stop may be deprecated since the introduction of edge_low/high
 	def edge_start(self, node):
 		if node is self.node1:

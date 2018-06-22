@@ -7,6 +7,7 @@ import argparse
 import copy
 from contig_loc import ContigLocation
 import gc
+import pysam
 
 if len(sys.argv) < 3:
 	sys.exit("Usage: %s block_list_tab_delimited indexed_fosmid_pairs" % sys.argv[0])
@@ -159,18 +160,173 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	### STEP 1 Group up edges ###
 
-	search_space = bad_node.get_sorted_edges()
+	search_space1 = bad_node.get_sorted_edges()
 
-	chunk_lo = float('inf')
-	chunk_hi = float('-inf')
+	chunk_lo1 = float('inf')
+	chunk_hi1 = float('-inf')
+	lo_pos1 = -1
+	hi_pos1 = -1
 	
-	for edge in search_space:
+	for pos, edge in enumerate(search_space1):
 
-		if edge.edge_low(bad_node) < chunk_lo and edge.opposite_node(bad_node) is other_node:
-			chunk_lo = edge.edge_low(bad_node)
+		if edge.edge_low(bad_node) < chunk_lo1 and edge.opposite_node(bad_node) is other_node:
+			chunk_lo1 = edge.edge_low(bad_node)
+			depth_lo1 = edge.og_edge_low(bad_node)
+			lo_pos1 = pos
 
-		if edge.edge_high(bad_node) > chunk_hi and edge.opposite_node(bad_node) is other_node:
-			chunk_hi = edge.edge_high(bad_node)
+		if edge.edge_high(bad_node) > chunk_hi1 and edge.opposite_node(bad_node) is other_node:
+			chunk_hi1 = edge.edge_high(bad_node)
+			depth_hi1 = edge.og_edge_high(bad_node)
+			hi_pos1 = pos
+
+	#TODO this search is designed to ignore border edges; should update later to account for these (if any are present)
+	lo_search1 = depth_lo1
+	left_search = list(reversed(search_space1[:lo_pos1]))
+	for edge in left_search:
+		if edge.edge_high(bad_node) < chunk_lo1:
+			lo_search1 = edge.og_edge_high(bad_node)
+			break
+
+	hi_search1 = depth_hi1
+	right_search = []
+	hi_pos1 += 1 #since slice will use this inclusively, and I don't want an already examined node to be included
+	if hi_pos1 < len(search_space1):
+		right_search = search_space1[hi_pos1:]
+	for edge in right_search:
+		if edge.edge_low(bad_node) > chunk_hi1:
+			hi_search1 = edge.og_edge_low(bad_node)
+			break
+	
+	lo_search1 += 1 #to make these inclusive coords for the depth of coverage search space
+	hi_search1 -= 1
+
+	#########################################################################################################################################
+	search_space2 = other_node.get_sorted_edges()
+
+	chunk_lo2 = float('inf')
+	chunk_hi2 = float('-inf')
+	lo_pos2 = -1
+	hi_pos2 = -1
+	
+	for pos, edge in enumerate(search_space2):
+
+		if edge.edge_low(other_node) < chunk_lo2 and edge.opposite_node(other_node) is bad_node:
+			chunk_lo2 = edge.edge_low(other_node)
+			depth_lo2 = edge.og_edge_low(other_node)
+			lo_pos2 = pos
+
+		if edge.edge_high(other_node) > chunk_hi2 and edge.opposite_node(other_node) is bad_node:
+			chunk_hi2 = edge.edge_high(other_node)
+			depth_hi2 = edge.og_edge_high(other_node)
+			hi_pos2 = pos
+
+	#TODO this search is designed to ignore border edges; should update later to account for these (if any are present)
+	lo_search2 = depth_lo2
+	left_search = list(reversed(search_space2[:lo_pos2]))
+	for edge in left_search:
+		if edge.edge_high(other_node) < chunk_lo2:
+			lo_search2 = edge.og_edge_high(other_node)
+			break
+
+	hi_search2 = depth_hi2
+	right_search = []
+	hi_pos2 += 1 #since slice will use this inclusively, and I don't want an already examined node to be included
+	if hi_pos2 < len(search_space2):
+		right_search = search_space2[hi_pos2:]
+	for edge in right_search:
+		if edge.edge_low(other_node) > chunk_hi2:
+			hi_search2 = edge.og_edge_low(other_node)
+			break
+	
+	lo_search2 += 1 #to make these inclusive coords for the depth of coverage search space
+	hi_search2 -= 1
+
+	###############################################
+	#choose new chunk_lo, chunk_hi, and potentially swap bad_node/other_node based on the search region with the lowest depth of coverage
+
+	left1_check_region = []
+	right1_check_region = []
+	left2_check_region = []
+	right2_check_region = []
+
+	#TODO hardcoded during testing; make this an input parameter so it's dynamic TODO
+	samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
+
+	if ( (depth_lo1-1) - lo_search1 ) >= 0:
+		temp = samfile.pileup(bad_node.asm_original.name, lo_search1, (depth_lo1 - 1) )
+		left1_check_region = list( filter( lambda x: lo_search1 <= x.n < depth_lo1, temp ) )
+
+	if ( hi_search1 - (depth_hi1+1) ) >= 0:
+		temp = samfile.pileup(bad_node.asm_original.name, (depth_hi1+1), hi_search1 )
+		right1_check_region = list( filter( lambda x: depth_hi1 < x.n <= hi_search1, temp ) )
+
+	if ( (depth_lo2-1) - lo_search2 ) >= 0:
+		temp = samfile.pileup(other_node.asm_original.name, lo_search2, (depth_lo2 - 1) )
+		left2_check_region = list( filter( lambda x: lo_search2 <= x.n < depth_lo2, temp ) )
+
+	if ( hi_search2 - (depth_hi2+1) ) >= 0:
+		temp = samfile.pileup(other_node.asm_original.name, (depth_hi2+1), hi_search2 )
+		right2_check_region = list( filter( lambda x: depth_hi2 < x.n <= hi_search2, temp ) )
+
+	samfile.close()
+
+	avg1 = float( sum( [x.pos for x in left1_check_region] ) + sum( [x.pos for x in right1_check_region] ) ) / ( len(left1_check_region) + len(right1_check_region) )
+	avg2 = float( sum( [x.pos for x in left2_check_region] ) + sum( [x.pos for x in right2_check_region] ) ) / ( len(left2_check_region) + len(right2_check_region) )
+
+	if avg1 < avg2: #will move bad_node to other_node's scaffold
+
+		search_space = search_space1 #set parameter for rest of move algorithm
+
+		min_pos = ( float('inf'), None )
+		for pos in left1_check_region.reverse(): #reverse so we're conservative and find the minimum closer to chunk_lo1 instead of lo_search1
+			if pos.n < min_pos[0]:
+				min_pos = (pos.n, pos.pos)
+		left_diff = depth_lo1 - min_pos[1]
+
+		if min_pos[1] is not None: #set parameter for rest of move algorithm
+			chunk_lo = chunk_lo1 - left_diff 
+		else:
+			chunk_lo = chunk_lo1
+
+
+		min_pos = ( float('inf'), None )
+		for pos in right1_check_region:
+			if pos.n < min_pos[0]:
+				min_pos = (pos.n, pos.pos)
+		right_diff = min_pos[1] - depth_hi1
+
+		if min_pos[1] is not None: #set parameter for rest of move algorithm
+			chunk_hi = chunk_hi1 + right_diff 
+		else:
+			chunk_hi = chunk_hi1
+
+
+
+	else: #will move other_node to bad_node's scaffold
+		search_space = search_space2
+
+		min_pos = ( float('inf'), None )
+		for pos in left2_check_region.reverse(): #reverse so we're conservative and find the minimum closer to chunk_lo1 instead of lo_search1
+			if pos.n < min_pos[0]:
+				min_pos = (pos.n, pos.pos)
+		left_diff = depth_lo2 - min_pos[1]
+
+		if min_pos[1] is not None: #set parameter for rest of move algorithm
+			chunk_lo = chunk_lo2 - left_diff 
+		else:
+			chunk_lo = chunk_lo2
+
+
+		min_pos = ( float('inf'), None )
+		for pos in right2_check_region:
+			if pos.n < min_pos[0]:
+				min_pos = (pos.n, pos.pos)
+		right_diff = min_pos[1] - depth_hi2
+
+		if min_pos[1] is not None: #set parameter for rest of move algorithm
+			chunk_hi = chunk_hi2 + right_diff 
+		else:
+			chunk_hi = chunk_hi2
 
 	left_edges = []
 	left_border_edges = []
