@@ -342,6 +342,10 @@ while bad_edges: #run as long as bad_edges is not empty
 		else:
 			chunk_hi = chunk_hi2
 
+		temp = bad_node
+		bad_node = other_node
+		other_node = temp
+
 	left_edges = []
 	left_border_edges = []
 	chunk_edges = []
