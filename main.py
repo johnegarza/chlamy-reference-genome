@@ -268,10 +268,23 @@ while bad_edges: #run as long as bad_edges is not empty
 		temp = samfile.pileup(other_node.asm_original.name, (depth_hi2+1), hi_search2 )
 		right2_check_region = list( filter( lambda x: depth_hi2 < x.n <= hi_search2, temp ) )
 
+	assert(left2_check_region is not None)
+
 	samfile.close()
 
-	avg1 = float( sum( [x.pos for x in left1_check_region] ) + sum( [x.pos for x in right1_check_region] ) ) / ( len(left1_check_region) + len(right1_check_region) )
-	avg2 = float( sum( [x.pos for x in left2_check_region] ) + sum( [x.pos for x in right2_check_region] ) ) / ( len(left2_check_region) + len(right2_check_region) )
+	assert(left2_check_region is not None)
+
+	region1_len = len(left1_check_region) + len(right1_check_region)
+	if region1_len != 0:
+		avg1 = float( sum( [x.pos for x in left1_check_region] ) + sum( [x.pos for x in right1_check_region] ) ) / region1_len
+	else:
+		avg1 = float('inf')
+	region2_len = len(left2_check_region) + len(right2_check_region)
+
+	if region2_len != 0:
+		avg2 = float( sum( [x.pos for x in left2_check_region] ) + sum( [x.pos for x in right2_check_region] ) ) / region2_len
+	else:
+		avg2 = float('inf')
 
 	if avg1 < avg2: #will move bad_node to other_node's scaffold
 
@@ -306,12 +319,13 @@ while bad_edges: #run as long as bad_edges is not empty
 		search_space = search_space2
 
 		min_pos = ( float('inf'), None )
-		for pos in left2_check_region.reverse(): #reverse so we're conservative and find the minimum closer to chunk_lo1 instead of lo_search1
+		left2_check_region.reverse() #reverse so we're conservative and find the minimum closer to chunk_lo1 instead of lo_search1
+		for pos in left2_check_region:
 			if pos.n < min_pos[0]:
 				min_pos = (pos.n, pos.pos)
-		left_diff = depth_lo2 - min_pos[1]
 
 		if min_pos[1] is not None: #set parameter for rest of move algorithm
+			left_diff = depth_lo2 - min_pos[1]
 			chunk_lo = chunk_lo2 - left_diff 
 		else:
 			chunk_lo = chunk_lo2
@@ -321,9 +335,9 @@ while bad_edges: #run as long as bad_edges is not empty
 		for pos in right2_check_region:
 			if pos.n < min_pos[0]:
 				min_pos = (pos.n, pos.pos)
-		right_diff = min_pos[1] - depth_hi2
 
 		if min_pos[1] is not None: #set parameter for rest of move algorithm
+			right_diff = min_pos[1] - depth_hi2
 			chunk_hi = chunk_hi2 + right_diff 
 		else:
 			chunk_hi = chunk_hi2
