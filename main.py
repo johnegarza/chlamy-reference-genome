@@ -152,6 +152,8 @@ line_indexed_nodes = []
 
 while bad_edges: #run as long as bad_edges is not empty
 
+	print(len(bad_edges))
+
 	seed_edge = bad_edges[0]
 
 	#arbitrarily chose to start with node1; will work with node2 later
@@ -507,11 +509,16 @@ while bad_edges: #run as long as bad_edges is not empty
 		while iterator.next is not None:
 			iterator.shift(-node_len)
 			iterator = iterator.next
-	
 
 
+with open("output.txt", "w") as o_f:
+	for head in contigs:
+		while head is not None:
+			o_f.write(str(head))
+			o_f.write("\n")
+			head = head.next
 
-
+		o_f.write("\n")
 
 
 
