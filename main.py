@@ -55,6 +55,8 @@ with open(alignment_file) as a_f:
 
 	for line_id, block in enumerate(alignment_data):
 
+		print(line_id)
+
 		#load in data from the current line
 		asm_scaf = block[0]
 		asm_start = int(block[1])
@@ -74,9 +76,11 @@ with open(alignment_file) as a_f:
 
 			#TODO again, hardcoded while testing; make dynamic parameter in later version
 			region = asm_scaf + ":" + str(asm_start) + "-" + str(asm_stop)
-			#this returns scaffold name and sequence string separated by \n; only care about seq, hence split and [1]
-			node_seq = pysam.faidx("assembly.fasta", region).split()[1]
+			#this returns scaffold name and sequence string separated by \n; only care about seq, hence split and [1:]
+			node_seq = "".join(pysam.faidx("assembly.fasta", region).split()[1:])
 			curr_node.seq = node_seq
+
+			assert len(node_seq) == len(curr_node.asm)
 
 			contigs.append(curr_node)
 
@@ -95,8 +99,10 @@ with open(alignment_file) as a_f:
 		#TODO again, hardcoded while testing; make dynamic parameter in later version
 		region = asm_scaf + ":" + str(asm_start) + "-" + str(asm_stop)
 		#this returns scaffold name and sequence string separated by \n; only care about seq, hence split and [1]
-		node_seq = pysam.faidx("assembly.fasta", region).split()[1]
+		node_seq = "".join(pysam.faidx("assembly.fasta", region).split()[1:])
 		new_node.seq = node_seq
+
+		assert len(node_seq) == len(new_node.asm)
 
 		curr_node.next = new_node
 		curr_node = new_node
@@ -447,12 +453,12 @@ while bad_edges: #run as long as bad_edges is not empty
 	chunk_asm_CL = ContigLocation(other_node.asm.name, other_node.asm.left, other_node.asm.left + (node_len - 1) )
 	chunk_node = Node(-1, chunk_ref_CL, chunk_asm_CL, bad_node.asm_original, chunk_edges)
 	chunk_seq = bad_node.seq[left_dist:right_split_index]
-	chunk.seq = chunk_seq
+	chunk_node.seq = chunk_seq
 
 	assert len(chunk_seq) == len(chunk_asm_CL)
 
 	#TODO should this be      .trim_right?
-	left_ref_CL = bad_node.ref.trim_left(left_dist - 1) #-1 because otherwise this and prev node would start at the exact same coord; this CL should have exclusive coords
+	left_ref_CL = bad_node.ref.trim_right(right_dist - 1) #-1 because otherwise this and prev node would start at the exact same coord; this CL should have exclusive coords
 	left_asm_CL = ContigLocation(bad_node.asm.name, bad_node.asm.left, chunk_lo - 1)
 	left_node = Node(-1, left_ref_CL, left_asm_CL, bad_node.asm_original, left_edges)
 	left_seq = bad_node.seq[:left_dist]
@@ -461,7 +467,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	assert len(left_seq) == len(left_asm_CL)
 
 	#TODO should this be       .trim_left?
-	right_ref_CL = bad_node.ref.trim_right(right_dist - 1)
+	right_ref_CL = bad_node.ref.trim_left(left_dist - 1)
 	right_asm_CL = ContigLocation(bad_node.asm.name, chunk_lo, bad_node.asm.right - node_len)
 	right_node = Node(-1, right_ref_CL, right_asm_CL, bad_node.asm_original, right_edges)
 	right_seq = bad_node.seq[right_split_index:]

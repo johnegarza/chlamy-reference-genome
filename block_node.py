@@ -102,7 +102,7 @@ class Node:
 		self.asm_original = None
 		self._edges = None
 		self.prev = None
-		self.prev = None
+		self.next = None
 		self.seq = None
 
 	def shift_coords(self, num):

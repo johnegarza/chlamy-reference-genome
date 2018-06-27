@@ -53,7 +53,7 @@ class ContigLocation:
 			return ContigLocation(self.name, self.left, self.right - num)
 
 	def __len__(self):
-		return abs(self.right - self.left)
+		return abs(self.right - self.left) + 1
 
 
 
