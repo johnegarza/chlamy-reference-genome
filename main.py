@@ -151,6 +151,10 @@ for place, val in enumerate(tally):
 #don't need this anymore- clear memory and unnecessary references that may keep nodes removed from main assembly alive and "orphaned"
 line_indexed_nodes = []
 
+#TODO hardcoded during testing; make this an input parameter so it's dynamic TODO
+samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
+
+
 while bad_edges: #run as long as bad_edges is not empty
 
 	print(len(bad_edges))
@@ -252,9 +256,6 @@ while bad_edges: #run as long as bad_edges is not empty
 	left2_check_region = []
 	right2_check_region = []
 
-	#TODO hardcoded during testing; make this an input parameter so it's dynamic TODO
-	samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
-
 	if ( (depth_lo1-1) - lo_search1 ) >= 0:
 		temp = samfile.pileup(bad_node.asm_original.name, lo_search1, (depth_lo1 - 1) )
 		left1_check_region = list( filter( lambda x: lo_search1 <= x.n < depth_lo1, temp ) )
@@ -272,8 +273,6 @@ while bad_edges: #run as long as bad_edges is not empty
 		right2_check_region = list( filter( lambda x: depth_hi2 < x.n <= hi_search2, temp ) )
 
 	assert(left2_check_region is not None)
-
-	samfile.close()
 
 	assert(left2_check_region is not None)
 
@@ -510,6 +509,9 @@ while bad_edges: #run as long as bad_edges is not empty
 		while iterator.next is not None:
 			iterator.shift(-node_len)
 			iterator = iterator.next
+
+samfile.close()
+
 '''	
 for head in contigs:
 	while head is not None:
