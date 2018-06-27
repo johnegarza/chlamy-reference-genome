@@ -204,6 +204,11 @@ while bad_edges: #run as long as bad_edges is not empty
 			depth_hi1 = edge.og_edge_high(bad_node)
 			hi_pos1 = pos
 
+	assert(lo_pos1 != -1)
+	assert(hi_pos1 != -1)
+	assert(chunk_lo1 >= bad_node.asm.left)
+	assert(chunk_hi1 <= bad_node.asm.right)
+
 	#TODO this search is designed to ignore border edges; should update later to account for these (if any are present)
 	lo_search1 = depth_lo1
 	left_search = list(reversed(search_space1[:lo_pos1]))
@@ -245,6 +250,11 @@ while bad_edges: #run as long as bad_edges is not empty
 			depth_hi2 = edge.og_edge_high(other_node)
 			hi_pos2 = pos
 
+	assert(lo_pos2 != -1)
+	assert(hi_pos2 != -1)
+	assert(chunk_lo2 >= other_node.asm.left)
+	assert(chunk_hi2 <= other_node.asm.right)
+
 	#TODO this search is designed to ignore border edges; should update later to account for these (if any are present)
 	lo_search2 = depth_lo2
 	left_search = list(reversed(search_space2[:lo_pos2]))
@@ -276,19 +286,19 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	if ( (depth_lo1-1) - lo_search1 ) >= 0:
 		temp = samfile.pileup(bad_node.asm_original.name, lo_search1, (depth_lo1 - 1) )
-		left1_check_region = list( filter( lambda x: lo_search1 <= x.n < depth_lo1, temp ) )
+		left1_check_region = [ x.n for x in temp if lo_search1 <= x.pos < depth_lo1 ]
 
 	if ( hi_search1 - (depth_hi1+1) ) >= 0:
 		temp = samfile.pileup(bad_node.asm_original.name, (depth_hi1+1), hi_search1 )
-		right1_check_region = list( filter( lambda x: depth_hi1 < x.n <= hi_search1, temp ) )
+		right1_check_region = [ x.n for x in temp if depth_hi1 < x.pos <= hi_search1 ]
 
 	if ( (depth_lo2-1) - lo_search2 ) >= 0:
 		temp = samfile.pileup(other_node.asm_original.name, lo_search2, (depth_lo2 - 1) )
-		left2_check_region = list( filter( lambda x: lo_search2 <= x.n < depth_lo2, temp ) )
+		left2_check_region = [ x.n for x in temp if lo_search2 <= x.pos < depth_lo2 ]
 
 	if ( hi_search2 - (depth_hi2+1) ) >= 0:
 		temp = samfile.pileup(other_node.asm_original.name, (depth_hi2+1), hi_search2 )
-		right2_check_region = list( filter( lambda x: depth_hi2 < x.n <= hi_search2, temp ) )
+		right2_check_region = [ x.n for x in temp if depth_hi2 < x.pos <= hi_search2 ]
 
 	assert(left2_check_region is not None)
 
