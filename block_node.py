@@ -60,6 +60,8 @@ class Node:
 		self.prev = p_node
 		self.next = n_node
 
+		self.seq = ""
+
 	def add_edge(self, edge):
 		self._edges.append(edge)
 		self._edges_sorted = False
@@ -101,6 +103,7 @@ class Node:
 		self._edges = None
 		self.prev = None
 		self.prev = None
+		self.seq = None
 
 	def shift_coords(self, num):
 		self.asm.shift(num)

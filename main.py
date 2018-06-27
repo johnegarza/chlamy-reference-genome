@@ -72,6 +72,12 @@ with open(alignment_file) as a_f:
 			curr_asm_CL = ContigLocation(asm_scaf, asm_start, asm_stop)
 			curr_node = Node(line_num, curr_ref_CL, curr_asm_CL)
 
+			#TODO again, hardcoded while testing; make dynamic parameter in later version
+			region = asm_scaf + ":" + str(asm_start) + "-" + str(asm_stop)
+			#this returns scaffold name and sequence string separated by \n; only care about seq, hence split and [1]
+			node_seq = pysam.faidx("assembly.fasta", region).split()[1]
+			curr_node.seq = node_seq
+
 			contigs.append(curr_node)
 
 			line_indexed_nodes.append(curr_node)
@@ -85,6 +91,12 @@ with open(alignment_file) as a_f:
 		new_ref_CL = ContigLocation(ref_chr, ref_start, ref_stop)
 		new_asm_CL = ContigLocation(asm_scaf, asm_start, asm_stop)
 		new_node = Node(line_num, new_ref_CL, new_asm_CL, p_node = curr_node)
+
+		#TODO again, hardcoded while testing; make dynamic parameter in later version
+		region = asm_scaf + ":" + str(asm_start) + "-" + str(asm_stop)
+		#this returns scaffold name and sequence string separated by \n; only care about seq, hence split and [1]
+		node_seq = pysam.faidx("assembly.fasta", region).split()[1]
+		new_node.seq = node_seq
 
 		curr_node.next = new_node
 		curr_node = new_node
@@ -426,6 +438,7 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	left_dist = chunk_lo - bad_node.asm.left #inclusive coords
 	right_dist = bad_node.asm.right - chunk_hi
+	right_split_index = (chunk_hi - bad_node.asm.left) + 1
 
 
 	#TODO ref CL changes only work if nodes are a one-to-one mapping; is this accurate?
@@ -433,16 +446,28 @@ while bad_edges: #run as long as bad_edges is not empty
 	chunk_ref_CL = bad_node.ref.trim(left_dist, right_dist)
 	chunk_asm_CL = ContigLocation(other_node.asm.name, other_node.asm.left, other_node.asm.left + (node_len - 1) )
 	chunk_node = Node(-1, chunk_ref_CL, chunk_asm_CL, bad_node.asm_original, chunk_edges)
+	chunk_seq = bad_node.seq[left_dist:right_split_index]
+	chunk.seq = chunk_seq
+
+	assert len(chunk_seq) == len(chunk_asm_CL)
 
 	#TODO should this be      .trim_right?
 	left_ref_CL = bad_node.ref.trim_left(left_dist - 1) #-1 because otherwise this and prev node would start at the exact same coord; this CL should have exclusive coords
 	left_asm_CL = ContigLocation(bad_node.asm.name, bad_node.asm.left, chunk_lo - 1)
 	left_node = Node(-1, left_ref_CL, left_asm_CL, bad_node.asm_original, left_edges)
+	left_seq = bad_node.seq[:left_dist]
+	left_node.seq = left_seq
+
+	assert len(left_seq) == len(left_asm_CL)
 
 	#TODO should this be       .trim_left?
 	right_ref_CL = bad_node.ref.trim_right(right_dist - 1)
 	right_asm_CL = ContigLocation(bad_node.asm.name, chunk_lo, bad_node.asm.right - node_len)
 	right_node = Node(-1, right_ref_CL, right_asm_CL, bad_node.asm_original, right_edges)
+	right_seq = bad_node.seq[right_split_index:]
+	right_node.seq = right_seq
+
+	assert len(right_seq) == len(right_asm_CL)
 
 	full_len = bad_node.asm.right - bad_node.asm.left
 	nodes_len = (left_node.asm.right - left_node.asm.left) + (chunk_node.asm.right - chunk_node.asm.left) + (right_node.asm.right - right_node.asm.left) + 2
@@ -520,7 +545,7 @@ for head in contigs:
 	print("\n")
 '''
 
-with open("output.txt", "w") as o_f:
+with open("output2.txt", "w") as o_f:
 	for head in contigs:
 		while head is not None:
 			o_f.write(str(head))
