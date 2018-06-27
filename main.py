@@ -321,7 +321,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		search_space = search_space1 #set parameter for rest of move algorithm
 
 		min_pos = ( float('inf'), None )
-		for pos in left1_check_region.reverse(): #reverse so we're conservative and find the minimum closer to chunk_lo1 instead of lo_search1
+		left1_check_region.reverse() #reverse so we're conservative and find the minimum closer to chunk_lo1 instead of lo_search1
+		for pos in left1_check_region:
 			if pos.n < min_pos[0]:
 				min_pos = (pos.n, pos.pos)
 		left_diff = depth_lo1 - min_pos[1]
