@@ -325,9 +325,9 @@ while bad_edges: #run as long as bad_edges is not empty
 		for pos in left1_check_region:
 			if pos.n < min_pos[0]:
 				min_pos = (pos.n, pos.pos)
-		left_diff = depth_lo1 - min_pos[1]
 
 		if min_pos[1] is not None: #set parameter for rest of move algorithm
+			left_diff = depth_lo1 - min_pos[1]
 			chunk_lo = chunk_lo1 - left_diff 
 		else:
 			chunk_lo = chunk_lo1
@@ -337,9 +337,9 @@ while bad_edges: #run as long as bad_edges is not empty
 		for pos in right1_check_region:
 			if pos.n < min_pos[0]:
 				min_pos = (pos.n, pos.pos)
-		right_diff = min_pos[1] - depth_hi1
 
 		if min_pos[1] is not None: #set parameter for rest of move algorithm
+			right_diff = min_pos[1] - depth_hi1
 			chunk_hi = chunk_hi1 + right_diff 
 		else:
 			chunk_hi = chunk_hi1
