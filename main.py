@@ -7,7 +7,7 @@ import argparse
 import copy
 from contig_loc import ContigLocation
 import gc
-#import pysam
+import pysam
 
 if len(sys.argv) < 3:
 	sys.exit("Usage: %s block_list_tab_delimited indexed_fosmid_pairs" % sys.argv[0])
@@ -127,7 +127,6 @@ with open(fosmid_pairs) as f_p:
 			bad_edges.append(edge)
 		#edges.append(edge) #TODO if no proper use for this, remove; will just lead to memory leaks, as this keeps edges deleted later on still alive due to the reference
 
-print(len(contigs))
 
 '''
 tally = [0]*200
@@ -151,8 +150,10 @@ for place, val in enumerate(tally):
 
 #don't need this anymore- clear memory and unnecessary references that may keep nodes removed from main assembly alive and "orphaned"
 line_indexed_nodes = []
-'''
+
 while bad_edges: #run as long as bad_edges is not empty
+
+	print(len(bad_edges))
 
 	seed_edge = bad_edges[0]
 
@@ -509,7 +510,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		while iterator.next is not None:
 			iterator.shift(-node_len)
 			iterator = iterator.next
-	
+'''	
 for head in contigs:
 	while head is not None:
 		print(head)
@@ -517,7 +518,14 @@ for head in contigs:
 	print("\n")
 '''
 
+with open("output.txt", "w") as o_f:
+	for head in contigs:
+		while head is not None:
+			o_f.write(str(head))
+			o_f.write("\n")
+			head = head.next
 
+		o_f.write("\n")
 
 
 
