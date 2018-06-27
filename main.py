@@ -286,19 +286,19 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	if ( (depth_lo1-1) - lo_search1 ) >= 0:
 		temp = samfile.pileup(bad_node.asm_original.name, lo_search1, (depth_lo1 - 1) )
-		left1_check_region = [ x.n for x in temp if lo_search1 <= x.pos < depth_lo1 ]
+		left1_check_region = [ x for x in temp if lo_search1 <= x.pos < depth_lo1 ]
 
 	if ( hi_search1 - (depth_hi1+1) ) >= 0:
 		temp = samfile.pileup(bad_node.asm_original.name, (depth_hi1+1), hi_search1 )
-		right1_check_region = [ x.n for x in temp if depth_hi1 < x.pos <= hi_search1 ]
+		right1_check_region = [ x for x in temp if depth_hi1 < x.pos <= hi_search1 ]
 
 	if ( (depth_lo2-1) - lo_search2 ) >= 0:
 		temp = samfile.pileup(other_node.asm_original.name, lo_search2, (depth_lo2 - 1) )
-		left2_check_region = [ x.n for x in temp if lo_search2 <= x.pos < depth_lo2 ]
+		left2_check_region = [ x for x in temp if lo_search2 <= x.pos < depth_lo2 ]
 
 	if ( hi_search2 - (depth_hi2+1) ) >= 0:
 		temp = samfile.pileup(other_node.asm_original.name, (depth_hi2+1), hi_search2 )
-		right2_check_region = [ x.n for x in temp if depth_hi2 < x.pos <= hi_search2 ]
+		right2_check_region = [ x for x in temp if depth_hi2 < x.pos <= hi_search2 ]
 
 	assert(left2_check_region is not None)
 
