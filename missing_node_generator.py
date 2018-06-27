@@ -14,10 +14,14 @@ included_scafs = set()
 #assembly scaffold, start, stop, reference chromosome, start, stop, assembly length, reference length, line number
 last_node = ("scaf", 0, 0, "chromosome", 0, 0, 0, 0, 0)
 
-with open("../node_list.tsv") as node_data:
+with open("./htcf_data/node_list.tsv") as node_data:
 	nodes = node_data.readlines()
 	for node in nodes:
+		node = node.strip()
 		split = node.split("\t")
+
+		last_stop = int(last_node[2]) + 1
+		curr_start = int(split[1]) - 1
 
 		#detects the switch to a new assembly scaffold
 		if split[0] != last_node[0]:
@@ -29,7 +33,7 @@ with open("../node_list.tsv") as node_data:
 			if curr_stop < stop_coord:
 
 				node_len = (stop_coord - curr_stop) + 1
-				temp = [last_node[0], str(curr_stop), str(stop_coord), "no_match", "0", "0", node_len, "0", "-2"]
+				temp = [last_node[0], str(curr_stop), str(stop_coord), "no_match", "0", "0", str(node_len), "0", "-2"]
 
 				new_node = "\t".join(temp)
 				final_data.append(new_node)
@@ -40,8 +44,7 @@ with open("../node_list.tsv") as node_data:
 				new_node = "\t".join(temp)
 				final_data.append(new_node)
 
-		last_stop = int(last_node[2]) + 1
-		curr_start = int(split[1]) - 1
+		#check for coordinate gaps between sequential nodes
 		elif (curr_start - last_stop > 0):
 			node_len = (curr_start - last_stop) + 1
 			temp = [split[0], str(last_stop), str(curr_start), "no_match", "0", "0", str(node_len), "0", "-2"]
@@ -49,6 +52,7 @@ with open("../node_list.tsv") as node_data:
 			final_data.append(new_node)
 
 		final_data.append(node)
+		last_node = split
 
 del name_to_len["scaf"] #remove artificially added edge case entry
 for scaffold in name_to_len:
