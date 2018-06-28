@@ -17,12 +17,16 @@ class ContigLocation:
 
 	def shift(self, num):
 
+		'''
 		if self.rev():
 			self.left = self.left - num
 			self.right = self.right - num
 		else:
 			self.left = self.left + num
 			self.right = self.right + num
+		'''
+		self.left = self.left + num
+		self.right = self.right + num
 
 	def midpoint(self):
 		return (self.left + self.right) / 2
