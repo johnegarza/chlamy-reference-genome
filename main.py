@@ -485,6 +485,9 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	######################## CREATE NEW NODES ####################
 	
+	left_node_exists = bad_node.asm.left != chunk_lo
+	right_node_exists = bad_node.asm.right != chunk_hi
+
 	node_len = (chunk_hi - chunk_lo) + 1
 
 	left_dist = chunk_lo - bad_node.asm.left #inclusive coords
@@ -503,32 +506,39 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	assert len(chunk_seq) == len(chunk_asm_CL)
 
-	right_trim_dist = bad_node.asm.right - (chunk_lo -1) #-1 because otherwise this and prev node would start at the exact same coord; this CL should have exclusive coords
-	left_ref_CL = bad_node.ref.trim_right(right_trim_dist) 
-	left_asm_CL = ContigLocation(bad_node.asm.name, bad_node.asm.left, chunk_lo - 1)
-	left_asm_og_CL = bad_node.asm_original.trim_right(right_trim_dist)
-	left_node = Node(-1, left_ref_CL, left_asm_CL, left_asm_og_CL, left_edges)
-	left_seq = bad_node.seq[:left_dist]
-	left_node.seq = left_seq
+	if right_node_exists:
+		right_trim_dist = bad_node.asm.right - (chunk_lo -1) #-1 because otherwise this and prev node would start at the exact same coord; this CL should have exclusive coords
+		left_ref_CL = bad_node.ref.trim_right(right_trim_dist) 
+		left_asm_CL = ContigLocation(bad_node.asm.name, bad_node.asm.left, chunk_lo - 1)
+		left_asm_og_CL = bad_node.asm_original.trim_right(right_trim_dist)
+		left_node = Node(-1, left_ref_CL, left_asm_CL, left_asm_og_CL, left_edges)
+		left_seq = bad_node.seq[:left_dist]
+		left_node.seq = left_seq
 
-	assert len(left_seq) == len(left_asm_CL)
+		assert len(left_seq) == len(left_asm_CL)
 
-	left_trim_dist = (chunk_hi + 1) - bad_node.asm.left #+1 for the same reason as -1 comment above
-	right_ref_CL = bad_node.ref.trim_left(left_trim_dist)
-	right_asm_CL = ContigLocation(bad_node.asm.name, chunk_lo, bad_node.asm.right - node_len)
-	right_asm_og_CL = bad_node.asm_original.trim_left(left_trim_dist)
-	right_node = Node(-1, right_ref_CL, right_asm_CL, right_asm_og_CL, right_edges)
-	right_seq = bad_node.seq[right_split_index:]
-	right_node.seq = right_seq
+	if left_node_exists:
+		left_trim_dist = (chunk_hi + 1) - bad_node.asm.left #+1 for the same reason as -1 comment above
+		right_ref_CL = bad_node.ref.trim_left(left_trim_dist)
+		right_asm_CL = ContigLocation(bad_node.asm.name, chunk_lo, bad_node.asm.right - node_len)
+		right_asm_og_CL = bad_node.asm_original.trim_left(left_trim_dist)
+		right_node = Node(-1, right_ref_CL, right_asm_CL, right_asm_og_CL, right_edges)
+		right_seq = bad_node.seq[right_split_index:]
+		right_node.seq = right_seq
 
-	assert len(right_seq) == len(right_asm_CL)
+		assert len(right_seq) == len(right_asm_CL)
 
 	full_len = bad_node.asm.right - bad_node.asm.left
-	nodes_len = (left_node.asm.right - left_node.asm.left) + (chunk_node.asm.right - chunk_node.asm.left) + (right_node.asm.right - right_node.asm.left) + 2
+	nodes_len = len(chunk_node.asm) - 1
+	if right_node_exists:
+		nodes_len += len(right_node.asm)
+	if left_node_exists:
+		nodes_len += len(left_node.asm)
 	assert(full_len == nodes_len)
 	
 	####INSERT NEW NODES####
 	
+	'''
 	left_node.next = right_node
 	right_node.prev = left_node
 
@@ -559,14 +569,80 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	chunk_node.next = other_node
 	other_node.prev = chunk_node
+	'''
+
+	#other_node could be the head of a contig
+	if other_node.prev is None:
+		for index, head in enumerate(contigs):
+			if head is other_node:
+				contigs[index] = chunk_node
+				break
+	else:
+		chunk_node.prev = other_node.prev
+		other_node.prev.next = chunk_node
+
+	chunk_node.next = other_node
+	other_node.prev = chunk_node
+
+	joiner_nodes = []
+	joiner_nodes.append(bad_node.prev)
+	if left_node_exists:
+		joiner_nodes.append(left_node)
+	if right_node_exists:
+		joiner_nodes.append(right_node)
+	joiner_nodes.append(bad_node.next)
+	joiner_nodes = [x for x in joiner_nodes if x is not None]
+
+	#this scaffold has been placed inside another
+	if len(joiner_nodes) == 0:
+		contigs.remove(bad_node)
+
+	#see pic from 6/28/2018
+	if len(joiner_nodes) == 1:
+		for index, head in contigs:
+			if head is bad_node:
+				contigs[index] = joiner_nodes[0]
+				#TODO only one update is really necessary- setting .prev = None if the node is
+				#bad_node.prev; this is safer for now, could be removed later for maximum optimization
+				joiner_nodes[0].prev = None
+				joiner_nodes[0].next = None
+				break
+		#else is entered if the search loop completes without finding a head to replace
+		#this indicates that the node is bad_node.prev, which is now a tail node- so reset its .next
+		else:
+			joiner_nodes[0].next = None
+
+	if (left_node_exists and joiner_nodes[0] is left_node) or (right_node_exists and joiner_nodes[0] is right_node):
+		for index, head in contigs:
+			if head is bad_node:
+				contigs[index] = joiner_nodes[0]
+		else:
+			assert(5==6)
+
+	partner = 1
+	stop_iter = len(joiner_nodes)
+	for node1 in joiner_nodes:
+		if parter >= stop_iter:
+			break
+
+		node2 = joiner_nodes[partner]
+
+		node1.next = node2
+		node2.prev = node1
+
+
+		partner += 1
+	joiner_nodes[-1].prev = joiner_nodes[-2]
+	
 
 	###### UPDATE EDGE ENDPOINTS ########
-	left_node.new_edge_endpoints(bad_node)
-	right_node.new_edge_endpoints(bad_node)
+	if left_node_exists:
+		left_node.new_edge_endpoints(bad_node)
+	if right_node_exists:
+		right_node.new_edge_endpoints(bad_node)
 	chunk_node.new_edge_endpoints(bad_node)
 	bad_node.clear()
 
-	
 	#STEP 6 propogate coordinate updates to all nodes (and their edges) that changed location due to the insertion/deletion
 
 	for edge in chunk_edges:
@@ -585,24 +661,40 @@ while bad_edges: #run as long as bad_edges is not empty
 			iterator = iterator.next
 		
 	#TODO same as above
-	right_node.shift_edges(-node_len)
-	if right_node.next is not None:
-		iterator = right_node.next
+
+	if right_node_exists:
+		right_node.shift_edges(-node_len)
+		pre_iter = right_node.next
+	elif left_node_exists:
+		pre_iter = left_node.next
+	else:
+		#TODO double check this case to make sure this is exactly what I think it is- see pic from 6/28/2018 (case my finger is pointing at)
+		pre_iter = joiner_nodes[0]
+
+	joiner_nodes = [] #remove uneeded references
+	#TODO possibly add in unit tests here to make sure bad_node isn't accidentally preserved as the next/prev for any other nodes or in any edges
+
+
+	if pre_iter is not None:
+		iterator = pre_iter
 		if iterator.next is None:
 			iterator.shift(-node_len)
 		while iterator.next is not None:
 			iterator.shift(-node_len)
 			iterator = iterator.next
 
-	for edge in left_edges:
-		assert(edge.edge_low(left_node) >= left_node.asm.left)
-		assert(edge.edge_high(left_node) <= left_node.asm.right)
+	if left_node_exists:
+		for edge in left_edges:
+			assert(edge.edge_low(left_node) >= left_node.asm.left)
+			assert(edge.edge_high(left_node) <= left_node.asm.right)
 	for edge in chunk_edges:
 		assert(edge.edge_low(chunk_node) >= chunk_node.asm.left)
 		assert(edge.edge_high(chunk_node) <= chunk_node.asm.right)
-	for edge in right_edges:
-		assert(edge.edge_low(right_node) >= right_node.asm.left)
-		assert(edge.edge_high(right_node) <= right_node.asm.right)
+
+	if right_node_exists:
+		for edge in right_edges:
+			assert(edge.edge_low(right_node) >= right_node.asm.left)
+			assert(edge.edge_high(right_node) <= right_node.asm.right)
 
 
 samfile.close()
