@@ -452,8 +452,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		curr_edge = search_space[index]
 
 	for edge in right_edges:
-		assert(edge.edge_low(bad_node) > bad_node.asm.left)
-		assert(edge.edge_high(bad_node) < bad_node.asm.right)
+		assert(edge.edge_low(bad_node) >= bad_node.asm.left)
+		assert(edge.edge_high(bad_node) <= bad_node.asm.right)
 
 	total_len = len(left_edges) + len(left_border_edges) + len(chunk_edges) + len(right_border_edges) + len(right_edges)
 	assert( total_len == stop )
