@@ -138,9 +138,19 @@ with open(fosmid_pairs) as f_p:
 
 		if node1 is node2: #prevent duplicate edges in the same node
 			node1.add_edge(edge)
+#			assert(node1.asm.left <= left_asm_start)
+#			assert(node1.asm.right >= left_asm_stop)
+#			assert(node1.asm.left <= right_asm_start)
+#			assert(node1.asm.right >= right_asm_stop)
 		else:
 			node1.add_edge(edge)
 			node2.add_edge(edge)
+#			assert(node1.asm.left <= left_asm_start)
+#			assert(node1.asm.right >= left_asm_stop)
+#			assert(node2.asm.left <= right_asm_start)
+#			assert(node2.asm.right >= right_asm_stop)
+
+
 		if edge.weight == -10:
 			bad_edges.append(edge)
 		#edges.append(edge) #TODO if no proper use for this, remove; will just lead to memory leaks, as this keeps edges deleted later on still alive due to the reference
@@ -186,6 +196,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	### STEP 1 Group up edges ###
 
 	search_space1 = bad_node.get_sorted_edges()
+	assert(search_space1[0].edge_low(bad_node) > bad_node.asm.left)
+	assert(search_space1[-1].edge_high(bad_node) < bad_node.asm.right)
 
 	chunk_lo1 = float('inf')
 	chunk_hi1 = float('-inf')
@@ -232,6 +244,8 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	#########################################################################################################################################
 	search_space2 = other_node.get_sorted_edges()
+	assert(search_space2[0].edge_low(other_node) > other_node.asm.left)
+	assert(search_space2[-1].edge_high(other_node) < other_node.asm.right)
 
 	chunk_lo2 = float('inf')
 	chunk_hi2 = float('-inf')
@@ -401,6 +415,13 @@ while bad_edges: #run as long as bad_edges is not empty
 			break
 		curr_edge = search_space[index]
 
+	for edge in left_edges:
+		assert(edge.edge_low(bad_node) > bad_node.asm.left)
+		assert(edge.edge_high(bad_node) < bad_node.asm.right)
+	for edge in left_border_edges:
+		assert(edge.edge_low(bad_node) > bad_node.asm.left)
+		assert(edge.edge_high(bad_node) < bad_node.asm.right)
+
 	#second condition shouldn't be necessary; shouldn't affect performance, but may reevaluate later
 	while ( curr_edge.edge_low(bad_node) < chunk_hi ) and (index < stop):
 
@@ -414,12 +435,25 @@ while bad_edges: #run as long as bad_edges is not empty
 			break
 		curr_edge = search_space[index]
 
+	for edge in chunk_edges:
+		assert(edge.edge_low(bad_node) > bad_node.asm.left)
+		assert(edge.edge_high(bad_node) < bad_node.asm.right)
+
+	for edge in right_border_edges:
+		assert(edge.edge_low(bad_node) > bad_node.asm.left)
+		assert(edge.edge_high(bad_node) < bad_node.asm.right)
+
+
 	while index < stop:
 		right_edges.append(curr_edge)
 		index += 1
 		if index >= stop:
 			break
 		curr_edge = search_space[index]
+
+	for edge in right_edges:
+		assert(edge.edge_low(bad_node) > bad_node.asm.left)
+		assert(edge.edge_high(bad_node) < bad_node.asm.right)
 
 	total_len = len(left_edges) + len(left_border_edges) + len(chunk_edges) + len(right_border_edges) + len(right_edges)
 	assert( total_len == stop )
