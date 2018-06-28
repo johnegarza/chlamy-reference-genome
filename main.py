@@ -196,8 +196,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	### STEP 1 Group up edges ###
 
 	search_space1 = bad_node.get_sorted_edges()
-	assert(search_space1[0].edge_low(bad_node) > bad_node.asm.left)
-	assert(search_space1[-1].edge_high(bad_node) < bad_node.asm.right)
+	assert(search_space1[0].edge_low(bad_node) >= bad_node.asm.left)
+	assert(search_space1[-1].edge_high(bad_node) <= bad_node.asm.right)
 
 	chunk_lo1 = float('inf')
 	chunk_hi1 = float('-inf')
@@ -244,8 +244,8 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	#########################################################################################################################################
 	search_space2 = other_node.get_sorted_edges()
-	assert(search_space2[0].edge_low(other_node) > other_node.asm.left)
-	assert(search_space2[-1].edge_high(other_node) < other_node.asm.right)
+	assert(search_space2[0].edge_low(other_node) >= other_node.asm.left)
+	assert(search_space2[-1].edge_high(other_node) <= other_node.asm.right)
 
 	chunk_lo2 = float('inf')
 	chunk_hi2 = float('-inf')
@@ -416,11 +416,11 @@ while bad_edges: #run as long as bad_edges is not empty
 		curr_edge = search_space[index]
 
 	for edge in left_edges:
-		assert(edge.edge_low(bad_node) > bad_node.asm.left)
-		assert(edge.edge_high(bad_node) < bad_node.asm.right)
+		assert(edge.edge_low(bad_node) >= bad_node.asm.left)
+		assert(edge.edge_high(bad_node) <= bad_node.asm.right)
 	for edge in left_border_edges:
-		assert(edge.edge_low(bad_node) > bad_node.asm.left)
-		assert(edge.edge_high(bad_node) < bad_node.asm.right)
+		assert(edge.edge_low(bad_node) >= bad_node.asm.left)
+		assert(edge.edge_high(bad_node) <= bad_node.asm.right)
 
 	#second condition shouldn't be necessary; shouldn't affect performance, but may reevaluate later
 	while ( curr_edge.edge_low(bad_node) < chunk_hi ) and (index < stop):
@@ -436,12 +436,12 @@ while bad_edges: #run as long as bad_edges is not empty
 		curr_edge = search_space[index]
 
 	for edge in chunk_edges:
-		assert(edge.edge_low(bad_node) > bad_node.asm.left)
-		assert(edge.edge_high(bad_node) < bad_node.asm.right)
+		assert(edge.edge_low(bad_node) >= bad_node.asm.left)
+		assert(edge.edge_high(bad_node) <= bad_node.asm.right)
 
 	for edge in right_border_edges:
-		assert(edge.edge_low(bad_node) > bad_node.asm.left)
-		assert(edge.edge_high(bad_node) < bad_node.asm.right)
+		assert(edge.edge_low(bad_node) >= bad_node.asm.left)
+		assert(edge.edge_high(bad_node) <= bad_node.asm.right)
 
 
 	while index < stop:
@@ -595,14 +595,14 @@ while bad_edges: #run as long as bad_edges is not empty
 			iterator = iterator.next
 
 	for edge in left_edges:
-		assert(edge.edge_low(left_node) > left_node.asm.left)
-		assert(edge.edge_high(left_node) < left_node.asm.right)
+		assert(edge.edge_low(left_node) >= left_node.asm.left)
+		assert(edge.edge_high(left_node) <= left_node.asm.right)
 	for edge in chunk_edges:
-		assert(edge.edge_low(chunk_node) > chunk_node.asm.left)
-		assert(edge.edge_high(chunk_node) < chunk_node.asm.right)
+		assert(edge.edge_low(chunk_node) >= chunk_node.asm.left)
+		assert(edge.edge_high(chunk_node) <= chunk_node.asm.right)
 	for edge in right_edges:
-		assert(edge.edge_low(right_node) > right_node.asm.left)
-		assert(edge.edge_high(right_node) < right_node.asm.right)
+		assert(edge.edge_low(right_node) >= right_node.asm.left)
+		assert(edge.edge_high(right_node) <= right_node.asm.right)
 
 
 samfile.close()
