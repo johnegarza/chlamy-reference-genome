@@ -112,6 +112,7 @@ class Edge:
 		else:
 			assert(1==2)
 
+	#TODO should this have some sort of warning/return none when self.node1 is self.node2?
 	def opposite_node(self, node):
 		if node is self.node1:
 			return self.node2

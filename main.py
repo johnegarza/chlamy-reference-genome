@@ -586,6 +586,17 @@ while bad_edges: #run as long as bad_edges is not empty
 			iterator.shift(-node_len)
 			iterator = iterator.next
 
+	for edge in left_edges:
+		assert(edge.edge_low(left_node) > left_node.asm.left)
+		assert(edge.edge_high(left_node) < left_node.asm.right)
+	for edge in chunk_edges:
+		assert(edge.edge_low(chunk_node) > chunk_node.asm.left)
+		assert(edge.edge_high(chunk_node) < chunk_node.asm.right)
+	for edge in right_edges:
+		assert(edge.edge_low(right_node) > right_node.asm.left)
+		assert(edge.edge_high(right_node) < right_node.asm.right)
+
+
 samfile.close()
 
 '''	
