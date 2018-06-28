@@ -513,7 +513,7 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	assert len(left_seq) == len(left_asm_CL)
 
-	left_trim_dist = (chunk_hi + 1) - bad_node_asm.left #+1 for the same reason as -1 comment above
+	left_trim_dist = (chunk_hi + 1) - bad_node.asm.left #+1 for the same reason as -1 comment above
 	right_ref_CL = bad_node.ref.trim_left(left_trim_dist)
 	right_asm_CL = ContigLocation(bad_node.asm.name, chunk_lo, bad_node.asm.right - node_len)
 	right_asm_og_CL = bad_node.asm_original.trim_left(left_trim_dist)

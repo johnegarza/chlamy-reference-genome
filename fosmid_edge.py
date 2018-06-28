@@ -50,30 +50,30 @@ class Edge:
 		if node is self.node1:
 
 			edge_len = len(self.asm1) - 1
-			new_lo = node1.asm.left
+			new_lo = self.node1.asm.left
 			move_dist = self.asm1.low() - original_lo
 			new_end1 = new_lo + move_dist
 			new_end2 = new_end1 + edge_len
 
 			if self.asm1.rev():
-				self.asm1 = ContigLocation(node1.asm.name, new_end2, new_end1)
+				self.asm1 = ContigLocation(self.node1.asm.name, new_end2, new_end1)
 
 			else:
-				self.asm1 = ContigLocation(node1.asm.name, new_end1, new_end2)
+				self.asm1 = ContigLocation(self.node1.asm.name, new_end1, new_end2)
 
 		elif node is self.node2:
 
 			edge_len = len(self.asm2) - 1
-			new_lo = node2.asm.left
+			new_lo = self.node2.asm.left
 			move_dist = self.asm2.low() - original_lo
 			new_end1 = new_lo + move_dist
 			new_end2 = new_end1 + edge_len
 
 			if self.asm2.rev():
-				self.asm2 = ContigLocation(node2.asm.name, new_end2, new_end1)
+				self.asm2 = ContigLocation(self.node2.asm.name, new_end2, new_end1)
 
 			else:
-				self.asm2 = ContigLocation(node2.asm.name, new_end1, new_end2)
+				self.asm2 = ContigLocation(self.node2.asm.name, new_end1, new_end2)
 
 
 		else:
