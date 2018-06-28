@@ -496,7 +496,8 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	chunk_ref_CL = bad_node.ref.trim(left_dist, right_dist)
 	chunk_asm_CL = ContigLocation(other_node.asm.name, other_node.asm.left, other_node.asm.left + (node_len - 1) )
-	chunk_node = Node(-1, chunk_ref_CL, chunk_asm_CL, bad_node.asm_original, chunk_edges)
+	chunk_asm_og_CL = bad_node.asm_original.trim(left_dist, right_dist)
+	chunk_node = Node(-1, chunk_ref_CL, chunk_asm_CL, chunk_asm_og_CL, chunk_edges)
 	chunk_seq = bad_node.seq[left_dist:right_split_index]
 	chunk_node.seq = chunk_seq
 
@@ -566,8 +567,13 @@ while bad_edges: #run as long as bad_edges is not empty
 	
 	#STEP 6 propogate coordinate updates to all nodes (and their edges) that changed location due to the insertion/deletion
 
+	for edge in chunk_edges:
+		curr_len = edge.edge_high(chunk_node) - edge.edge_low(chunk_node)
+		edge.move_CL(chunk_node, chunk_lo)
+		new_len = edge.edge_high(chunk_node) - edge.edge_low(chunk_node)
+		assert(curr_len == new_len)
+
 	#TODO refactor so that chunk_node is part of the loop? removes many of the next lines and makes this cleaner overall
-	chunk_node.shift_edges(node_len) #coords have already been shifted during creation
 	if chunk_node.next is not None:
 		iterator = chunk_node.next
 		if iterator.next is None:
