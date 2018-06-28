@@ -40,15 +40,16 @@ class ContigLocation:
 		temp = self.trim_left(left_num)
 		return temp.trim_right(right_num)
 
+	#TODO more accurately, these should be called trim_low and trim_high... aren't bidirectional alignments fun
 	def trim_left(self, num):
 		if self.rev():
-			return ContigLocation(self.name, self.left - num, self.right)
+			return ContigLocation(self.name, self.left, self.right + num)
 		else:
 			return ContigLocation(self.name, self.left + num, self.right)
 
 	def trim_right(self, num):
 		if self.rev():
-			return ContigLocation(self.name, self.left, self.right + num)
+			return ContigLocation(self.name, self.left - num, self.right)
 		else:
 			return ContigLocation(self.name, self.left, self.right - num)
 
