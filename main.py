@@ -709,7 +709,7 @@ for head in contigs:
 	print("\n")
 '''
 
-with open("output2.txt", "w") as o_f:
+with open("output3.txt", "w") as o_f:
 	for head in contigs:
 		while head is not None:
 			o_f.write(str(head))
@@ -717,6 +717,28 @@ with open("output2.txt", "w") as o_f:
 			head = head.next
 
 		o_f.write("\n")
+
+with open("output.fasta", "w") as fasta:
+	for head in contigs:
+		curr_seq = ""
+		seq_name = ""
+		while head is not None:
+			seq_name = head.asm.name
+			curr_seq += head.seq
+			head = head.next
+
+		fasta.write(">" + seq_name)
+		fasta.write("\n")
+		while len(curr_seq) > 80:
+			fasta.write(curr_seq[:80]
+			fasta.write("\n")
+			curr_seq = [80:]
+		fasta.write(curr_seq)
+		fasta.write("\n")
+		fasta.write("\n")
+
+
+
 
 
 
