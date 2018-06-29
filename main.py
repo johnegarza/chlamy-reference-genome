@@ -719,7 +719,9 @@ with open("output3.txt", "w") as o_f:
 		o_f.write("\n")
 
 with open("output.fasta", "w") as fasta:
-	for head in contigs:
+	total = str(len(contigs))
+	for num, head in enumerate(contigs):
+		print(str(num) + "/" + total)
 		curr_seq = ""
 		seq_name = ""
 		while head is not None:
@@ -729,14 +731,21 @@ with open("output.fasta", "w") as fasta:
 
 		fasta.write(">" + seq_name)
 		fasta.write("\n")
+		print("writing fasta seq for this contig")
+		print(len(curr_seq))
+
+		loop_num = 0
+		denom = len(curr_seq)/80.0
 		while len(curr_seq) > 80:
-			fasta.write(curr_seq[:80]
+			fasta.write(curr_seq[:80])
 			fasta.write("\n")
-			curr_seq = [80:]
+			curr_seq = curr_seq[80:]
+			loop_num += 1
+			if loop_num % 1500 == 0:
+				print( str( (loop_num / denom)*100 ) + "%")
 		fasta.write(curr_seq)
 		fasta.write("\n")
 		fasta.write("\n")
-
 
 
 
