@@ -18,9 +18,9 @@ if not os.path.exists(sys.argv[2]):
 
 ############# TO RUN ###############
 #	from graph directory:
-#	python main.py htcf_data/node_list.tsv unique_mapped_ends.txt
+#	python main.py full_node_list.txt full_unique_mapped_ends.txt
 
-alignment_file = sys.argv[1] #tab_delim_results.tsv
+alignment_file = sys.argv[1] 
 fosmid_pairs = sys.argv[2]
 
 '''
@@ -709,7 +709,7 @@ for head in contigs:
 	print("\n")
 '''
 
-with open("output3.txt", "w") as o_f:
+with open("output.txt", "w") as o_f:
 	for head in contigs:
 		while head is not None:
 			o_f.write(str(head))
