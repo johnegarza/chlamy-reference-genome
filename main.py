@@ -506,7 +506,7 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	assert len(chunk_seq) == len(chunk_asm_CL)
 
-	if right_node_exists:
+	if left_node_exists:
 		right_trim_dist = bad_node.asm.right - (chunk_lo -1) #-1 because otherwise this and prev node would start at the exact same coord; this CL should have exclusive coords
 		left_ref_CL = bad_node.ref.trim_right(right_trim_dist) 
 		left_asm_CL = ContigLocation(bad_node.asm.name, bad_node.asm.left, chunk_lo - 1)
@@ -517,7 +517,7 @@ while bad_edges: #run as long as bad_edges is not empty
 
 		assert len(left_seq) == len(left_asm_CL)
 
-	if left_node_exists:
+	if right_node_exists:
 		left_trim_dist = (chunk_hi + 1) - bad_node.asm.left #+1 for the same reason as -1 comment above
 		right_ref_CL = bad_node.ref.trim_left(left_trim_dist)
 		right_asm_CL = ContigLocation(bad_node.asm.name, chunk_lo, bad_node.asm.right - node_len)
@@ -598,8 +598,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		contigs.remove(bad_node)
 
 	#see pic from 6/28/2018
-	if len(joiner_nodes) == 1:
-		for index, head in contigs:
+	elif len(joiner_nodes) == 1:
+		for index, head in enumerate(contigs):
 			if head is bad_node:
 				contigs[index] = joiner_nodes[0]
 				#TODO only one update is really necessary- setting .prev = None if the node is
@@ -612,27 +612,29 @@ while bad_edges: #run as long as bad_edges is not empty
 		else:
 			joiner_nodes[0].next = None
 
-	if (left_node_exists and joiner_nodes[0] is left_node) or (right_node_exists and joiner_nodes[0] is right_node):
-		for index, head in contigs:
-			if head is bad_node:
-				contigs[index] = joiner_nodes[0]
-		else:
-			assert(5==6)
+	else:
+		if (left_node_exists and joiner_nodes[0] is left_node) or (right_node_exists and joiner_nodes[0] is right_node):
+			for index, head in enumerate(contigs):
+				if head is bad_node:
+					contigs[index] = joiner_nodes[0]
+					break
+			else:
+				assert(5==6)
 
-	partner = 1
-	stop_iter = len(joiner_nodes)
-	for node1 in joiner_nodes:
-		if parter >= stop_iter:
-			break
+		partner = 1
+		stop_iter = len(joiner_nodes)
+		for node1 in joiner_nodes:
+			if partner >= stop_iter:
+				break
 
-		node2 = joiner_nodes[partner]
+			node2 = joiner_nodes[partner]
 
-		node1.next = node2
-		node2.prev = node1
+			node1.next = node2
+			node2.prev = node1
 
 
-		partner += 1
-	joiner_nodes[-1].prev = joiner_nodes[-2]
+			partner += 1
+		joiner_nodes[-1].prev = joiner_nodes[-2]
 	
 
 	###### UPDATE EDGE ENDPOINTS ########
