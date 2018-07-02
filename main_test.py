@@ -147,8 +147,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	continue_search = True
 	curr_node = bad_node
 	searched_nodes = [bad_node]
-	region_lo = seed_edge.edge_low()
-	region_hi = seed_edge.edge_high()
+	region_lo = seed_edge.edge_low(bad_node)
+	region_hi = seed_edge.edge_high(bad_node)
 	left_region_node = None
 	right_region_node = None
 
@@ -180,9 +180,9 @@ while bad_edges: #run as long as bad_edges is not empty
 			# region_hi is intended to capture 20, but the line below would only capture up to 10 then halt
 #			if (edge.weight != -10 or (edge.opposite_node(bad_node) is other_node) ) and (edge.edge_high() > region_hi):
 
-			if edge.weight != -10 or (edge.opposite_node(bad_node) is other_node):
-				if edge.edge_high() > region_hi:
-					region_hi = edge.edge_high()
+			if edge.weight != -10 or (edge.opposite_node(curr_node) is other_node):
+				if edge.edge_high(curr_node) > region_hi:
+					region_hi = edge.edge_high(curr_node)
 					right_region_node = curr_node
 			else:
 				#break out of this while loop
@@ -208,14 +208,14 @@ while bad_edges: #run as long as bad_edges is not empty
 		if left_first:
 			search_space = initial_left_list
 			left_first = False
-		else
+		else:
 			search_space = curr_node.get_sorted_edges()
 
 		search_space.reverse()
 
 		for edge in search_space:
-			if (edge.weight != -10 or (edge.opposite_node(bad_node) is other_node) ) and (edge.edge_low() < region_lo):
-				region_lo = edge.edge_low()
+			if (edge.weight != -10 or (edge.opposite_node(curr_node) is other_node) ) and (edge.edge_low(curr_node) < region_lo):
+				region_lo = edge.edge_low(curr_node)
 				left_region_node = curr_node
 			else:
 				continue_search = False
