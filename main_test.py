@@ -162,6 +162,9 @@ while bad_edges: #run as long as bad_edges is not empty
 	left_first = True
 	right_first = True
 
+	edge_list = set()
+	edge_list.add(seed_edge)
+
 	#search right
 	while curr_node is not None and continue_search:
 
@@ -184,6 +187,7 @@ while bad_edges: #run as long as bad_edges is not empty
 				if edge.edge_high(curr_node) > region_hi:
 					region_hi = edge.edge_high(curr_node)
 					right_region_node = curr_node
+					edge_list.add(edge)
 			else:
 				#break out of this while loop
 				continue_search = False
@@ -217,6 +221,7 @@ while bad_edges: #run as long as bad_edges is not empty
 			if (edge.weight != -10 or (edge.opposite_node(curr_node) is other_node) ) and (edge.edge_low(curr_node) < region_lo):
 				region_lo = edge.edge_low(curr_node)
 				left_region_node = curr_node
+				edge_list.add(edge)
 			else:
 				continue_search = False
 				break
@@ -227,4 +232,9 @@ while bad_edges: #run as long as bad_edges is not empty
 	searched_nodes.reverse() #back to normal
 
 	print(len(searched_nodes))
+
+	b_e_temp_set = set(bad_edges)
+	b_e_temp_set.difference_update(edge_list) #anything in edge_list that's also in b_e will be removed from b_e
+	bad_edges = list(b_e_temp_set)
+
 
