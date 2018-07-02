@@ -1,43 +1,25 @@
-from collections import defaultdict
-import sys, os, csv, re, fnmatch
+import sys, os, csv, re
 from block_node import Node
 from fosmid_edge import Edge
-import pickle
 import argparse
-import copy
 from contig_loc import ContigLocation
-import gc
 import pysam
-
-if len(sys.argv) < 3:
-	sys.exit("Usage: %s block_list_tab_delimited indexed_fosmid_pairs" % sys.argv[0])
-if not os.path.exists(sys.argv[1]):
-	sys.exit("Error: File '%s' not found" % sys.argv[1])
-if not os.path.exists(sys.argv[2]):
-	sys.exit("Error: File '%s' not found" % sys.argv[2])
 
 ############# TO RUN ###############
 #	from graph directory:
 #	python main.py full_node_list.txt full_unique_mapped_ends.txt
 
-alignment_file = sys.argv[1] 
-fosmid_pairs = sys.argv[2]
-
-'''
-parser = argparse.ArgumentParser(description='creates nodes and edges, then associates them together into a graph')
-parser.add_argument('alignments', metavar='*.tsv', help='a tab delimited reference to assembly alignment file')
+parser = argparse.ArgumentParser(description='Create initial graph from list of alignments and fosmid paired ends, then move nodes with edges in different scaffolds')
+parser.add_argument('alignments', metavar='*.tsv', help='a tab delimited reference to assembly alignment file from nucmer')
 parser.add_argument('fosmids', metavar='*.tsv', help = 'a fosmid paired end file')
 args = parser.parse_args()
 
-alignment_file = args.alignments #tab_delim_results.tsv
+alignment_file = args.alignments
 fosmid_pairs = args.fosmids
-'''
 
-contigs = [] #contains head node for each contig
+scaffolds = [] #contains head node for each scaffold
 line_indexed_nodes = [] #to retrieve node at line n, call line_indexed_nodes[n-1]
-#edges = [] #adding to help with active development
-bad_edges = [] 	#will attempt to use this for iterating over bad edges and moving them, instead of 
-		#iterating over nodes and searching each one's list of edges
+bad_edges = [] 	#used for iterating over bad edges and moving them
 
 with open(alignment_file) as a_f:
 	alignment_data = csv.reader(a_f, delimiter="\t")
@@ -47,10 +29,8 @@ with open(alignment_file) as a_f:
 	#initialize some dummy data so my script can dynamically begin construction from the 
 	#beginning of the file, instead of needing to hard code the initial case
 	prev_scaf = " "
-
 	dummy_CL = ContigLocation("dummy", 0, 0)
 	dummy_node = Node(-1, dummy_CL, dummy_CL)
-
 	curr_node = dummy_node
 
 	for line_id, block in enumerate(alignment_data):
@@ -66,7 +46,7 @@ with open(alignment_file) as a_f:
 		ref_stop = int(block[5])
 		line_num = int(block[8])
 
-		if(prev_scaf != asm_scaf): #end of an assembly contig
+		if(prev_scaf != asm_scaf): #end of an assembly scaffold
 
 			curr_node.next = None #TODO may not be necessary
 
@@ -76,13 +56,15 @@ with open(alignment_file) as a_f:
 
 			#TODO again, hardcoded while testing; make dynamic parameter in later version
 			region = asm_scaf + ":" + str(asm_start) + "-" + str(asm_stop)
-			#this returns scaffold name and sequence string separated by \n; only care about seq, hence split and [1:]
+			#faidx returns a string; it begins with the scaffold name, followed by a \n, after which one or more lines
+			#of DNA are present, also separated by \n; only care about raw string sequence, hence split and [1:]
 			node_seq = "".join(pysam.faidx("assembly.fasta", region).split()[1:])
 			curr_node.seq = node_seq
 
 			assert len(node_seq) == len(curr_node.asm)
 
-			contigs.append(curr_node)
+			#within this case, curr_node is the first node in a scaffold, so add it to the list of head nodes
+			scaffolds.append(curr_node)
 
 			line_indexed_nodes.append(curr_node)
 
@@ -138,43 +120,12 @@ with open(fosmid_pairs) as f_p:
 
 		if node1 is node2: #prevent duplicate edges in the same node
 			node1.add_edge(edge)
-#			assert(node1.asm.left <= left_asm_start)
-#			assert(node1.asm.right >= left_asm_stop)
-#			assert(node1.asm.left <= right_asm_start)
-#			assert(node1.asm.right >= right_asm_stop)
 		else:
 			node1.add_edge(edge)
 			node2.add_edge(edge)
-#			assert(node1.asm.left <= left_asm_start)
-#			assert(node1.asm.right >= left_asm_stop)
-#			assert(node2.asm.left <= right_asm_start)
-#			assert(node2.asm.right >= right_asm_stop)
-
 
 		if edge.weight == -10:
 			bad_edges.append(edge)
-		#edges.append(edge) #TODO if no proper use for this, remove; will just lead to memory leaks, as this keeps edges deleted later on still alive due to the reference
-
-
-'''
-tally = [0]*200
-for cnum, contig_head in enumerate(contigs):
-	
-	iterator = contig_head
-	while(iterator is not None):
-		counter = 0
-		for edge in iterator._edges:
-			if edge.weight == -10:
-				counter += 1
-#		if counter != 0:
-#			print(str(counter) + "/" + str(len(iterator._edges)) + " bad edges")
-		tally[counter] += 1
-		iterator = iterator.next
-
-for place, val in enumerate(tally):
-	if val != 0:
-		print( str(place) + " edges: " + str(val) + " nodes" )
-'''
 
 #don't need this anymore- clear memory and unnecessary references that may keep nodes removed from main assembly alive and "orphaned"
 line_indexed_nodes = []
@@ -189,7 +140,6 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	seed_edge = bad_edges[0]
 
-	#arbitrarily chose to start with node1; will work with node2 later
 	bad_node = seed_edge.node1
 	other_node = seed_edge.node2
 
@@ -538,44 +488,11 @@ while bad_edges: #run as long as bad_edges is not empty
 	
 	####INSERT NEW NODES####
 	
-	'''
-	left_node.next = right_node
-	right_node.prev = left_node
-
-	#node could be the head of a contig
-	if bad_node.prev is not None:
-		bad_node.prev.next = left_node
-		left_node.prev = bad_node.prev
-	else:
-		for index, head in enumerate(contigs):
-			if head is bad_node:
-				contigs[index] = left_node
-
-	#node could be the tail of a contig
-	if bad_node.next is not None:
-		bad_node.next.prev = right_node
-		right_node.next = bad_node.next
-
-
-
-	#other_node could be the head of a contig
+	#other_node could be the head of a scaffold
 	if other_node.prev is None:
-		for index, head in enumerate(contigs):
+		for index, head in enumerate(scaffolds):
 			if head is other_node:
-				contigs[index] = chunk_node
-	else:
-		chunk_node.prev = other_node.prev
-		other_node.prev.next = chunk_node
-
-	chunk_node.next = other_node
-	other_node.prev = chunk_node
-	'''
-
-	#other_node could be the head of a contig
-	if other_node.prev is None:
-		for index, head in enumerate(contigs):
-			if head is other_node:
-				contigs[index] = chunk_node
+				scaffolds[index] = chunk_node
 				break
 	else:
 		chunk_node.prev = other_node.prev
@@ -595,13 +512,13 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	#this scaffold has been placed inside another
 	if len(joiner_nodes) == 0:
-		contigs.remove(bad_node)
+		scaffolds.remove(bad_node)
 
 	#see pic from 6/28/2018
 	elif len(joiner_nodes) == 1:
-		for index, head in enumerate(contigs):
+		for index, head in enumerate(scaffolds):
 			if head is bad_node:
-				contigs[index] = joiner_nodes[0]
+				scaffolds[index] = joiner_nodes[0]
 				#TODO only one update is really necessary- setting .prev = None if the node is
 				#bad_node.prev; this is safer for now, could be removed later for maximum optimization
 				joiner_nodes[0].prev = None
@@ -614,9 +531,9 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	else:
 		if (left_node_exists and joiner_nodes[0] is left_node) or (right_node_exists and joiner_nodes[0] is right_node):
-			for index, head in enumerate(contigs):
+			for index, head in enumerate(scaffolds):
 				if head is bad_node:
-					contigs[index] = joiner_nodes[0]
+					scaffolds[index] = joiner_nodes[0]
 					break
 			else:
 				assert(5==6)
@@ -701,16 +618,8 @@ while bad_edges: #run as long as bad_edges is not empty
 
 samfile.close()
 
-'''	
-for head in contigs:
-	while head is not None:
-		print(head)
-		head = head.next
-	print("\n")
-'''
-
 with open("output.txt", "w") as o_f:
-	for head in contigs:
+	for head in scaffolds:
 		while head is not None:
 			o_f.write(str(head))
 			o_f.write("\n")
@@ -719,8 +628,8 @@ with open("output.txt", "w") as o_f:
 		o_f.write("\n")
 
 with open("output.fasta", "w") as fasta:
-	total = str(len(contigs))
-	for num, head in enumerate(contigs):
+	total = str(len(scaffolds))
+	for num, head in enumerate(scaffolds):
 		print(str(num) + "/" + total)
 		curr_seq = ""
 		seq_name = ""
@@ -731,7 +640,7 @@ with open("output.fasta", "w") as fasta:
 
 		fasta.write(">" + seq_name)
 		fasta.write("\n")
-		print("writing fasta seq for this contig")
+		print("writing fasta seq for this scaffold")
 		print(len(curr_seq))
 
 		loop_num = 0
