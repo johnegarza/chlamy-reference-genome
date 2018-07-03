@@ -174,6 +174,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		else:
 			search_space = curr_node.get_sorted_edges()
 
+		right_edges = []
+
 		for edge in search_space:
 
 			#changed to the existing implementation because of a small but possibly significant edge case:
@@ -188,6 +190,7 @@ while bad_edges: #run as long as bad_edges is not empty
 					region_hi = edge.edge_high(curr_node)
 					right_region_node = curr_node
 					edge_list.add(edge)
+					right_edges.append(edge)
 			else:
 				#break out of this while loop
 				continue_search = False
@@ -217,11 +220,14 @@ while bad_edges: #run as long as bad_edges is not empty
 
 		search_space.reverse()
 
+		left_edges = []
+
 		for edge in search_space:
 			if (edge.weight != -10 or (edge.opposite_node(curr_node) is other_node) ) and (edge.edge_low(curr_node) < region_lo):
 				region_lo = edge.edge_low(curr_node)
 				left_region_node = curr_node
 				edge_list.add(edge)
+				left_edges.append(edge)
 			else:
 				continue_search = False
 				break
@@ -233,6 +239,23 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	if (len(searched_nodes)-2 > 20 ):
 		print(region_hi - region_lo)
+
+	assert( searched_nodes[1].asm.low() <= region_lo <= searched_nodes[1].high() )
+	assert( searched_nodes[-2].asm.low() <= region_hi <= searched_nodes[-2].high() )
+
+	#####################################################################################left off here################################################
+
+	right_trim_dist = searched_nodes[1].high() - region_lo 
+	left_ref_CL = bad_node.ref.trim_right(right_trim_dist) 
+	left_asm_CL = ContigLocation(bad_node.asm.name, bad_node.asm.left, chunk_lo - 1)
+	left_asm_og_CL = bad_node.asm_original.trim_right(right_trim_dist)
+	left_node = Node(-1, left_ref_CL, left_asm_CL, left_asm_og_CL, left_edges)
+	left_seq = bad_node.seq[:left_dist]
+	left_node.seq = left_seq
+
+	assert len(left_seq) == len(left_asm_CL)
+
+
 
 
 	b_e_temp_set = set(bad_edges)

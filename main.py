@@ -447,9 +447,9 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	#TODO ref CL changes only work if nodes are a one-to-one mapping; is this accurate?
 
-	chunk_ref_CL = bad_node.ref.trim(left_dist, right_dist)
+	chunk_ref_CL = bad_node.ref.trim_no_change(left_dist, right_dist)
 	chunk_asm_CL = ContigLocation(other_node.asm.name, other_node.asm.left, other_node.asm.left + (node_len - 1) )
-	chunk_asm_og_CL = bad_node.asm_original.trim(left_dist, right_dist)
+	chunk_asm_og_CL = bad_node.asm_original.trim_no_change(left_dist, right_dist)
 	chunk_node = Node(-1, chunk_ref_CL, chunk_asm_CL, chunk_asm_og_CL, chunk_edges)
 	chunk_seq = bad_node.seq[left_dist:right_split_index]
 	chunk_node.seq = chunk_seq
@@ -458,9 +458,9 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	if left_node_exists:
 		right_trim_dist = bad_node.asm.right - (chunk_lo -1) #-1 because otherwise this and prev node would start at the exact same coord; this CL should have exclusive coords
-		left_ref_CL = bad_node.ref.trim_right(right_trim_dist) 
+		left_ref_CL = bad_node.ref.trim_right_no_change(right_trim_dist) 
 		left_asm_CL = ContigLocation(bad_node.asm.name, bad_node.asm.left, chunk_lo - 1)
-		left_asm_og_CL = bad_node.asm_original.trim_right(right_trim_dist)
+		left_asm_og_CL = bad_node.asm_original.trim_right_no_change(right_trim_dist)
 		left_node = Node(-1, left_ref_CL, left_asm_CL, left_asm_og_CL, left_edges)
 		left_seq = bad_node.seq[:left_dist]
 		left_node.seq = left_seq
@@ -469,9 +469,9 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	if right_node_exists:
 		left_trim_dist = (chunk_hi + 1) - bad_node.asm.left #+1 for the same reason as -1 comment above
-		right_ref_CL = bad_node.ref.trim_left(left_trim_dist)
+		right_ref_CL = bad_node.ref.trim_left_no_change(left_trim_dist)
 		right_asm_CL = ContigLocation(bad_node.asm.name, chunk_lo, bad_node.asm.right - node_len)
-		right_asm_og_CL = bad_node.asm_original.trim_left(left_trim_dist)
+		right_asm_og_CL = bad_node.asm_original.trim_left_no_change(left_trim_dist)
 		right_node = Node(-1, right_ref_CL, right_asm_CL, right_asm_og_CL, right_edges)
 		right_seq = bad_node.seq[right_split_index:]
 		right_node.seq = right_seq
