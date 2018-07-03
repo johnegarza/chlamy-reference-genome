@@ -136,7 +136,7 @@ samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
 
 while bad_edges: #run as long as bad_edges is not empty
 
-	print(len(bad_edges))
+#	print(len(bad_edges))
 
 	seed_edge = bad_edges[0]
 
@@ -231,7 +231,9 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	searched_nodes.reverse() #back to normal
 
-	print(len(searched_nodes))
+	if (len(searched_nodes)-2 > 20 ):
+		print(region_hi - region_lo)
+
 
 	b_e_temp_set = set(bad_edges)
 	b_e_temp_set.difference_update(edge_list) #anything in edge_list that's also in b_e will be removed from b_e
