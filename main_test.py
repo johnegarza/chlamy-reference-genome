@@ -432,7 +432,7 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	if pre_iter is not None:
 		if pre_iter.prev is not None:
-			shift_dist = (pre_iter.prev.asm.high() + 1) - prev_iter.asm.low()
+			shift_dist = (pre_iter.prev.asm.high() + 1) - pre_iter.asm.low()
 		else:
 			shift_dist = -(pre_iter.asm.low() - 1) #want right node to start at 1 since its a scaffold head in this case
 
