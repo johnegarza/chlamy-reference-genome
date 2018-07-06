@@ -136,7 +136,7 @@ samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
 
 while bad_edges: #run as long as bad_edges is not empty
 
-#	print(len(bad_edges))
+	print(len(bad_edges))
 
 	seed_edge = bad_edges[0]
 
@@ -197,7 +197,7 @@ while bad_edges: #run as long as bad_edges is not empty
 				continue_search = False
 				break
 
-		right_node_exists = curr_node.asm.high() - region_hi > 1
+#		right_node_exists = curr_node.asm.high() - region_hi > 1 BROKEN FOR UNKNOWN REASONS
 		right_debug = curr_node
 		#note that these 2 lines will always run- so the first and last nodes in searched_nodes will be one prior and one after
 		#the last node searched at that extreme; this could potentially be NoneType, allowing for easy identification of scaffold-spanning
@@ -234,18 +234,21 @@ while bad_edges: #run as long as bad_edges is not empty
 				continue_search = False
 				break
 
-		left_node_exists = region_lo - curr_node.asm.low() > 1
+#		left_node_exists = region_lo - curr_node.asm.low() > 1 possibly also broken; refactoring both for consistency
 		left_debug = curr_node
 		curr_node = curr_node.prev
 		searched_nodes.append(curr_node)
 
 	searched_nodes.reverse() #back to normal
 
-	if (len(searched_nodes)-2 > 20 ):
-		print(region_hi - region_lo)
+#	if (len(searched_nodes)-2 > 20 ):
+#		print(region_hi - region_lo)
 
-	assert( searched_nodes[1].asm.low() <= region_lo <= searched_nodes[1].high() )
-	assert( searched_nodes[-2].asm.low() <= region_hi <= searched_nodes[-2].high() )
+	left_node_exists = region_lo - left_debug.asm.low() > 1
+	right_node_exists = region_hi - right_debug.asm.high() > 1
+
+	assert( searched_nodes[1].asm.low() <= region_lo <= searched_nodes[1].asm.high() )
+	assert( searched_nodes[-2].asm.low() <= region_hi <= searched_nodes[-2].asm.high() )
 
 	assert(left_debug is searched_nodes[1])
 	assert(right_debug is searched_nodes[-2])
@@ -253,7 +256,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	#####################################################################################left off here################################################
 
 	chunk_len = (region_hi - region_lo) + 1
-	right_split_index = region_hi - 
+#	right_split_index = region_hi - 
 
 	if left_node_exists:
 
@@ -269,8 +272,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		left_node = Node(-1, left_ref_CL, left_asm_CL, left_asm_og_CL, left_edges)
 		left_seq = searched_nodes[1].seq[:left_trim_dist]
 		left_node.seq = left_seq
-		searched_nodes[1].seq = searched_nodes[1].seq[left_trim_dist:]
 		assert len(left_seq) == len(left_asm_CL)
+		searched_nodes[1].seq = searched_nodes[1].seq[left_trim_dist:]
 
 	if right_node_exists:
 
@@ -286,8 +289,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		right_node = Node(-1, right_ref_CL, right_asm_CL, right_asm_og_CL, right_edges)
 		right_seq = searched_nodes[-2].seq[(right_trim_dist + 1):]
 		right_node.seq = right_seq
-		searched_nodes[-2].seq = searched_nodes[-2].seq[:(right_trim_dist + 1)]
 		assert len(right_seq) == len(right_asm_CL)
+		searched_nodes[-2].seq = searched_nodes[-2].seq[:(right_trim_dist + 1)]
 
 
 
@@ -317,7 +320,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	if leftmost is not None:
 		leftmost.prev = searched_nodes[0]
 	if rightmost is not None:
-		righmost.next = searched_nodes[-1]
+		rightmost.next = searched_nodes[-1]
 	if searched_nodes[0] is not None:
 		searched_nodes[0].next = leftmost
 	if searched_nodes[-1] is not None:
@@ -339,7 +342,7 @@ while bad_edges: #run as long as bad_edges is not empty
 				if head is searched_nodes[1]:
 					scaffolds[index] = leftmost
 					break
-			else
+			else:
 				assert(1==2)
 
 	#update edge endpoints
@@ -354,7 +357,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		chunk_edges = chunk_node.get_edges()
 		for edge in chunk_edges:
 			edge.move_CL(chunk_node, region_lo)
-		chunk_node = chunk_node.next()
+		chunk_node = chunk_node.next
 
 	#TODO refactor so that searched_nodes[-2] is part of the loop? removes many of the next lines and makes this cleaner overall
 	if searched_nodes[-2].next is not None:
@@ -379,9 +382,9 @@ while bad_edges: #run as long as bad_edges is not empty
 	if pre_iter is not None:
 		iterator = pre_iter
 		if iterator.next is None:
-			iterator.shift(-node_len)
+			iterator.shift(-chunk_len)
 		while iterator.next is not None:
-			iterator.shift(-node_len)
+			iterator.shift(-chunk_len)
 			iterator = iterator.next
 
 
