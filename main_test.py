@@ -133,6 +133,7 @@ line_indexed_nodes = []
 #TODO hardcoded during testing; make this an input parameter so it's dynamic TODO
 samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
 
+debug_trimmed_nodes = set()
 
 while bad_edges: #run as long as bad_edges is not empty
 
@@ -159,10 +160,25 @@ while bad_edges: #run as long as bad_edges is not empty
 	#hack to make the loop handle all the work, even the initial case, despite possible edge case (if bad_node has sorted edges at either end
 	#that match to another scaffold's node, aside from other_node, search would fail to extend boundaries from seed_edge)
 	initial_edges = bad_node.get_sorted_edges()
+
+	for edge in initial_edges:
+		assert edge.edge_low(bad_node) >= bad_node.asm.low()
+		assert edge.edge_high(bad_node) <= bad_node.asm.high()
+	'''
 	seed_pos = initial_edges.index(seed_edge)
 	initial_left_list = initial_edges[:seed_pos]
 	seed_pos += 1
 	initial_right_list = initial_edges[(seed_pos + 1):]
+	'''
+
+	initial_left_list = []
+	initial_right_list = []
+	for edge in initial_edges:
+		if edge.edge_high(bad_node) <= seed_edge.edge_low(bad_node):
+			initial_left_list.append(edge)
+		elif edge.edge_low >= seed_edge.edge_high(bad_node):
+			initial_right_list.append(edge)
+
 	left_first = True
 	right_first = True
 
@@ -174,11 +190,18 @@ while bad_edges: #run as long as bad_edges is not empty
 
 		if right_first:
 			search_space = initial_right_list
+			for edge in search_space:
+				assert edge.edge_low(curr_node) >= curr_node.asm.low()
+				assert edge.edge_high(curr_node) <= seed_edge.edge_low(curr_node)
 			right_first = False
 		else:
 			search_space = curr_node.get_sorted_edges()
 
 		right_exclusive_edges = []
+
+		for edge in search_space:
+			assert edge.edge_low(curr_node) >= curr_node.asm.low()
+			assert edge.edge_high(curr_node) <= curr_node.asm.high()
 
 		for edge in search_space:
 
@@ -248,6 +271,9 @@ while bad_edges: #run as long as bad_edges is not empty
 
 #	if (len(searched_nodes)-2 > 20 ):
 #		print(region_hi - region_lo)
+
+	debug_trimmed_nodes.add(left_debug)
+	debug_trimmed_nodes.add(right_debug)
 
 	assert(left_debug is searched_nodes[1])
 	assert(right_debug is searched_nodes[-2])
@@ -442,12 +468,18 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	while chunk_node is not other_node:
 		chunk_node.shift(shift_dist)
+		for edge in chunk_node.get_edges():
+			assert edge.edge_low(chunk_node) >= chunk_node.asm.low()
+			assert edge.edge_high(chunk_node) <= chunk_node.asm.high()
 		chunk_node = chunk_node.next
 
 	shift_distance = (searched_nodes[-2].asm.high() - other_node.asm.low()) + 1
 	new_right_node = other_node
 	while new_right_node is not None:
 		new_right_node.shift(shift_distance)
+		for edge in new_right_node.get_edges():
+			assert edge.edge_low(new_right_node) >= new_right_node.asm.low()
+			assert edge.edge_high(new_right_node) <= new_right_node.asm.high()
 		new_right_node = new_right_node.next
 
 
@@ -457,6 +489,9 @@ while bad_edges: #run as long as bad_edges is not empty
 		else:
 			shift_dist = -(right_node.asm.low() - 1) #want right node to start at 1 since its a scaffold head in this case
 		right_node.shift_edges(shift_dist)
+		for edge in right_node.get_edges():
+			assert edge.edge_low(right_node) >= right_node.asm.low()
+			assert edge.edge_high(right_node) <= right_node.asm.high()
 	
 	if rightmost is not None:
 		pre_iter = rightmost.next
@@ -473,6 +508,9 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	while pre_iter is not None:
 		pre_iter.shift(shift_dist)
+		for edge in pre_iter.get_edges():
+			assert edge.edge_low(pre_iter) >= pre_iter.asm.low()
+			assert edge.edge_high(pre_iter) <= pre_iter.asm.high()
 		pre_iter = pre_iter.next
 
 
