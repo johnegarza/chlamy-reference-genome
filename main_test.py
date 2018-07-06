@@ -267,10 +267,24 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	if left_node_exists:
 
-		left_edges = set(searched_nodes[1].get_edges())
+		left_edges = searched_nodes[1].get_sorted_edges()
 		for edge in left_edges:
 			assert edge.edge_low(searched_nodes[1]) >= searched_nodes[1].asm.low()
 			assert edge.edge_high(searched_nodes[1]) <= searched_nodes[1].asm.high()
+
+		left_node_edges = []
+		border_edges = []
+		left_chunk_edges = []
+		for edge in left_edges:
+			if edge.edge_low(searched_nodes[1]) < region_lo:
+				if edge.edge_high(searched_nodes[1]) < region_lo:
+					left_node_edges.append(edge)
+				else:
+					border_edges.append(edge)
+			else:
+				left_chunk_edges.append(edge)
+
+		'''
 		#left_exclusive_edges has all edges in searched_nodes[1] that DO NOT belong in the new left node, plus others;
 		#difference update removes all elements that occur in its argument
 		left_edges.difference_update(left_exclusive_edges)
@@ -281,7 +295,8 @@ while bad_edges: #run as long as bad_edges is not empty
 
 		left_chunk_edges = set(searched_nodes[1].get_edges())
 		left_chunk_edges.difference_update(left_edges)
-		searched_nodes[1]._edges = list(left_chunk_edges)
+		'''
+		searched_nodes[1]._edges = left_chunk_edges
 		searched_nodes[1]._edges_sorted = False
 
 		debug_temp = searched_nodes[1].asm.low()
@@ -293,8 +308,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		assert( left_asm_CL.high() == region_lo - 1 )
 		assert( searched_nodes[1].asm.low() == region_lo )
 		left_asm_og_CL = searched_nodes[1].asm_original.trim_lo(left_trim_dist)
-		left_node = Node(-1, left_ref_CL, left_asm_CL, left_asm_og_CL, left_edges)
-		for edge in left_edges:
+		left_node = Node(-1, left_ref_CL, left_asm_CL, left_asm_og_CL, left_node_edges)
+		for edge in left_node_edges:
 			#searched_nodes[1] because ownership of these edges has not been transferred from this to left_node yet
 			assert( edge.edge_low(searched_nodes[1]) >= left_node.asm.low())
 			assert( edge.edge_high(searched_nodes[1]) <= left_node.asm.high())
@@ -306,12 +321,25 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	if right_node_exists:
 
-		right_edges = set(searched_nodes[-2].get_edges())
-		right_edges.difference_update(right_exclusive_edges)
+		right_edges = searched_nodes[-2].get_sorted_edges()
+#		right_edges.difference_update(right_exclusive_edges)
 
+		right_node_edges = []
+		border_edges2 = []
+		right_chunk_edges = []
+		for edge in right_edges:
+			if edge.edge_low(searched_nodes[-2]) <= region_hi:
+				if edge.edge_high(searched_nodes[-2]) <= region_hi:
+					right_chunk_edges.append(edge)
+				else:
+					border_edges2.append(edge)
+			else:
+				right_node_edges.append(edge)
+		'''
 		right_chunk_edges = set(searched_nodes[-2].get_edges())
 		right_chunk_edges.difference_update(right_edges)
-		searched_nodes[-2]._edges = list(right_chunk_edges)
+		'''
+		searched_nodes[-2]._edges = right_chunk_edges
 		searched_nodes[-2]._edges_sorted = False
 
 		debug_temp2 = searched_nodes[-2].asm.high()
@@ -326,8 +354,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		right_asm_CL.right = searched_nodes[-2].asm.high() - chunk_len
 		assert( debug_temp == len(right_asm_CL) )
 		right_asm_og_CL = searched_nodes[-2].asm_original.trim_hi(right_trim_dist)
-		right_node = Node(-1, right_ref_CL, right_asm_CL, right_asm_og_CL, right_edges)
-		for edge in right_edges:
+		right_node = Node(-1, right_ref_CL, right_asm_CL, right_asm_og_CL, right_node_edges)
+		for edge in right_node_edges:
 			assert( edge.edge_low(searched_nodes[-2]) >= right_node.asm.low() )
 			assert( edge.edge_high(searched_nodes[-2]) <= right_node.asm.high() )
 		right_seq = searched_nodes[-2].seq[(right_trim_dist + 1):]
