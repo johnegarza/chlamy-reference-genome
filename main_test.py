@@ -268,9 +268,16 @@ while bad_edges: #run as long as bad_edges is not empty
 	if left_node_exists:
 
 		left_edges = set(searched_nodes[1].get_edges())
+		for edge in left_edges:
+			assert edge.edge_low(searched_nodes[1]) >= searched_nodes[1].asm.low()
+			assert edge.edge_high(searched_nodes[1]) <= searched_nodes[1].asm.high()
 		#left_exclusive_edges has all edges in searched_nodes[1] that DO NOT belong in the new left node, plus others;
 		#difference update removes all elements that occur in its argument
 		left_edges.difference_update(left_exclusive_edges)
+		for edge in left_edges:
+			assert edge.edge_low(searched_nodes[1]) >= searched_nodes[1].asm.low()
+			assert edge.edge_high(searched_nodes[1]) <= (region_lo - 1)
+
 
 		left_chunk_edges = set(searched_nodes[1].get_edges())
 		left_chunk_edges.difference_update(left_edges)
