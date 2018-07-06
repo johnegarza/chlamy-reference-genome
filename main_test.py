@@ -229,7 +229,7 @@ while bad_edges: #run as long as bad_edges is not empty
 
 		left_exclusive_edges = []
 
-		for edge in search_space:ght
+		for edge in search_space:
 			if (edge.weight != -10 or (edge.opposite_node(curr_node) is other_node) ) and (edge.edge_low(curr_node) < region_lo):
 				region_lo = edge.edge_low(curr_node)
 				left_region_node = curr_node
