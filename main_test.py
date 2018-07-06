@@ -272,6 +272,11 @@ while bad_edges: #run as long as bad_edges is not empty
 		#difference update removes all elements that occur in its argument
 		left_edges.difference_update(left_exclusive_edges)
 
+		left_chunk_edges = set(searched_nodes[1].get_edges())
+		left_chunk_edges.difference_update(left_edges)
+		searched_nodes[1]._edges = list(left_chunk_edges)
+		searched_nodes[1]._edges_sorted = False
+
 		debug_temp = searched_nodes[1].asm.low()
 
 		left_trim_dist = region_lo - searched_nodes[1].asm.low()
@@ -296,6 +301,11 @@ while bad_edges: #run as long as bad_edges is not empty
 
 		right_edges = set(searched_nodes[-2].get_edges())
 		right_edges.difference_update(right_exclusive_edges)
+
+		right_chunk_edges = set(searched_nodes[-2].get_edges())
+		right_chunk_edges.difference_update(right_edges)
+		searched_nodes[-2]._edges = list(right_chunk_edges)
+		searched_nodes[-2]._edges_sorted = False
 
 		debug_temp2 = searched_nodes[-2].asm.high()
 
