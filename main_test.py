@@ -139,6 +139,16 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	print(len(bad_edges))
 
+
+	if len(bad_edges) == 1161:
+		#offending edge is at position bad_edges[1]
+
+		spots = []
+		for index, edge in enumerate(bad_edges):
+			if edge.asm1_original.name == "chromosome_3" and edge.asm1_original.left == 187189:
+				spots.append(index)
+		import pdb; pdb.set_trace()
+
 	seed_edge = bad_edges[0]
 
 	bad_node = seed_edge.node1
@@ -444,6 +454,10 @@ while bad_edges: #run as long as bad_edges is not empty
 	b_e_temp_set.difference_update(edge_list) #anything in edge_list that's also in b_e will be removed from b_e
 	bad_edges = list(b_e_temp_set)
 
+	bad_edges.sort( key = lambda e : e.edge_low(e.node1) ) #adding to make this stable/make the overall algorithm non-deterministic:
+	#I have a bug that shows up many iterations into the program, at seemingly random times, so it's difficult to debug manually with prints
+	#or with pdb. adding this to try to make the problem completely reproducible so I can hopefully finally track this down
+
 
 	############### setting/updating prev and next for all affected nodes ################
 
@@ -513,12 +527,20 @@ while bad_edges: #run as long as bad_edges is not empty
 	print("shift new chunk")
 	chunk_node = searched_nodes[1]
 	shift_dist = other_node.asm.low() - chunk_node.asm.low()
+	new_name = other_node.asm.name
 
 	debug_enum = 0
 	while chunk_node is not other_node:
 		#print(debug_enum)
 		chunk_node.shift(shift_dist)
+		chunk_node.asm.name = new_name
 		for edge in chunk_node.get_edges():
+			if edge.node1 is chunk_node:
+				edge.asm1.name = new_name
+			elif edge.node2 is chunk_node:
+				edge.asm2.name = new_name
+			else:
+				assert 10 == 20
 			assert edge.edge_low(chunk_node) >= chunk_node.asm.low()
 			assert edge.edge_high(chunk_node) <= chunk_node.asm.high()
 		chunk_node = chunk_node.next
