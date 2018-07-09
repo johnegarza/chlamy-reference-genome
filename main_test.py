@@ -176,7 +176,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	for edge in initial_edges:
 		if edge.edge_high(bad_node) <= seed_edge.edge_low(bad_node):
 			initial_left_list.append(edge)
-		elif edge.edge_low >= seed_edge.edge_high(bad_node):
+		elif edge.edge_low(bad_node) >= seed_edge.edge_high(bad_node):
 			initial_right_list.append(edge)
 
 	left_first = True
@@ -191,8 +191,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		if right_first:
 			search_space = initial_right_list
 			for edge in search_space:
-				assert edge.edge_low(curr_node) >= curr_node.asm.low()
-				assert edge.edge_high(curr_node) <= seed_edge.edge_low(curr_node)
+				assert edge.edge_low(curr_node) >= seed_edge.edge_high(curr_node)
+				assert edge.edge_high(curr_node) <= curr_node.asm.high()
 			right_first = False
 		else:
 			search_space = curr_node.get_sorted_edges()
@@ -215,6 +215,8 @@ while bad_edges: #run as long as bad_edges is not empty
 			if edge.weight != -10 or (edge.opposite_node(curr_node) is other_node):
 				if edge.edge_high(curr_node) > region_hi:
 					region_hi = edge.edge_high(curr_node)
+					DEBUG_RIGHT_EDGE = edge
+					assert curr_node.asm.low() <= region_hi <= curr_node.asm.high()
 					right_region_node = curr_node
 					edge_list.add(edge)
 					right_exclusive_edges.append(edge)
@@ -243,9 +245,16 @@ while bad_edges: #run as long as bad_edges is not empty
 
 		if left_first:
 			search_space = initial_left_list
+			for edge in search_space:
+				assert edge.edge_low(curr_node) >= curr_node.asm.low()
+				assert edge.edge_high(curr_node) <= seed_edge.edge_low(curr_node)
 			left_first = False
 		else:
 			search_space = curr_node.get_sorted_edges()
+
+		for edge in search_space:
+			assert edge.edge_low(curr_node) >= curr_node.asm.low()
+			assert edge.edge_high(curr_node) <= curr_node.asm.high()
 
 		#otherwise this would always choose search_space[0] due to ordering
 		search_space.reverse()
@@ -255,6 +264,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		for edge in search_space:
 			if (edge.weight != -10 or (edge.opposite_node(curr_node) is other_node) ) and (edge.edge_low(curr_node) < region_lo):
 				region_lo = edge.edge_low(curr_node)
+				DEBUG_LEFT_EDGE = edge
+				assert curr_node.asm.low() <= region_lo <= curr_node.asm.high()
 				left_region_node = curr_node
 				edge_list.add(edge)
 				left_exclusive_edges.append(edge)
@@ -439,7 +450,7 @@ while bad_edges: #run as long as bad_edges is not empty
 			del scaffolds[searched_nodes[1]]
 		else:
 			#remove old head/add new one
-			for index, head in scaffolds:
+			for index, head in enumerate(scaffolds):
 				if head is searched_nodes[1]:
 					scaffolds[index] = leftmost
 					break
