@@ -145,6 +145,11 @@ while bad_edges: #run as long as bad_edges is not empty
 	other_node = seed_edge.node2
 	insert_left = other_node.prev
 
+	assert seed_edge.edge_low(bad_node) >= bad_node.asm.low()
+	assert seed_edge.edge_high(bad_node) <= bad_node.asm.high()
+	assert seed_edge.edge_low(other_node) >= other_node.asm.low()
+	assert seed_edge.edge_high(other_node) <= bad_node.asm.high()
+
 	'''
 	######## define the low/high coordinates/nodes of the region to be pulled out of its current scaffold and placed in another ################
 	'''
@@ -186,6 +191,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	edge_list.add(seed_edge)
 
 	#search right
+	right_debug = bad_node
+	right_first_iter = True
 	while curr_node is not None and continue_search:
 
 		if right_first:
@@ -231,13 +238,16 @@ while bad_edges: #run as long as bad_edges is not empty
 
 #		right_node_exists = curr_node.asm.high() - region_hi > 1 BROKEN FOR UNKNOWN REASONS
 
-		if node_searched:
+		if node_searched or right_first_iter:
 			right_debug = curr_node
 			#note that these 2 lines will always run- so the first and last nodes in searched_nodes will be one prior and one after
 			#the last node searched at that extreme; this could potentially be NoneType, allowing for easy identification of scaffold-spanning
 			#chunk regions later
 			curr_node = curr_node.next
 			searched_nodes.append(curr_node)
+		else:
+			break
+		right_first_iter = False
 
 
 
@@ -247,6 +257,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	searched_nodes.reverse()
 
 	#search left
+	left_debug = bad_node
+	left_first_iter = True
 	while curr_node is not None and continue_search:
 
 		if left_first:
@@ -285,10 +297,13 @@ while bad_edges: #run as long as bad_edges is not empty
 
 		#if node_searched is still false, no values were updated based on this node; it is a fringe node and would have
 		#already been added in the last iteration of the while loop, so nothing needs to be added to searched_nodes
-		if node_searched:
+		if node_searched or left_first_iter:
 			left_debug = curr_node
 			curr_node = curr_node.prev
 			searched_nodes.append(curr_node)
+		else:
+			break
+		left_first_iter = False
 
 	searched_nodes.reverse() #back to normal
 
@@ -470,7 +485,7 @@ while bad_edges: #run as long as bad_edges is not empty
 				assert(1==2)
 	if insert_left is None:
 		#remove old head/add new one
-		for index, head in scaffolds:
+		for index, head in enumerate(scaffolds):
 			if head is other_node:
 				scaffolds[index] = searched_nodes[1]
 				break
