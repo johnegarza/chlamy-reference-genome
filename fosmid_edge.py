@@ -40,6 +40,9 @@ class Edge:
 		assert t_a_s <= t_a_e, str(t_a_s) + " " + str(t_a_e)
 		assert o_a_s <= o_a_e
 
+	def owned_by(self, node):
+		return (node is self.node1) or (node is self.node2)
+
 	def edge_start(self, node):
 		if node is self.node1:
 		elif node is self.node2:

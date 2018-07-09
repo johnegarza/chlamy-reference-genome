@@ -202,7 +202,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		for edge in search_space:
 			assert edge.edge_low(curr_node) >= curr_node.asm.low()
 			assert edge.edge_high(curr_node) <= curr_node.asm.high()
-
+			assert edge.node1 is curr_node or edge.node2 is curr_node
 		for edge in search_space:
 
 			#changed to the existing implementation because of a small but possibly significant edge case:
@@ -211,7 +211,7 @@ while bad_edges: #run as long as bad_edges is not empty
 			# [(1,10), (2,8), (3, 20)]
 			# region_hi is intended to capture 20, but the line below would only capture up to 10 then halt
 #			if (edge.weight != -10 or (edge.opposite_node(bad_node) is other_node) ) and (edge.edge_high() > region_hi):
-
+			import pdb; pdb.set_trace()
 			if edge.weight != -10 or (edge.opposite_node(curr_node) is other_node):
 				if edge.edge_high(curr_node) > region_hi:
 					region_hi = edge.edge_high(curr_node)
