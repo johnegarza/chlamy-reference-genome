@@ -326,6 +326,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	################# begin construction of possible new nodes at either end of the region ###################
 	'''
 
+	edges_to_remove = []
+
 	chunk_len = (region_hi - region_lo) + 1
 #	right_split_index = region_hi - 
 
@@ -347,6 +349,9 @@ while bad_edges: #run as long as bad_edges is not empty
 					border_edges.append(edge)
 			else:
 				left_chunk_edges.append(edge)
+
+		edges_to_remove.extend(border_edges)
+		edges_to_remove.extend(left_chunk_edges)
 
 		'''
 		#left_exclusive_edges has all edges in searched_nodes[1] that DO NOT belong in the new left node, plus others;
@@ -399,6 +404,10 @@ while bad_edges: #run as long as bad_edges is not empty
 					border_edges2.append(edge)
 			else:
 				right_node_edges.append(edge)
+
+		edges_to_remove.extend(border_edges2)
+		edges_to_remove.extend(right_chunk_edges)
+
 		'''
 		right_chunk_edges = set(searched_nodes[-2].get_edges())
 		right_chunk_edges.difference_update(right_edges)
@@ -429,7 +438,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		assert len(searched_nodes[1].seq) == len(searched_nodes[1].asm)
 
 
-
+	edge_list.extend(edges_to_remove)
 	b_e_temp_set = set(bad_edges)
 	b_e_temp_set.difference_update(edge_list) #anything in edge_list that's also in b_e will be removed from b_e
 	bad_edges = list(b_e_temp_set)
