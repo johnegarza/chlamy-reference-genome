@@ -203,6 +203,9 @@ while bad_edges: #run as long as bad_edges is not empty
 			assert edge.edge_low(curr_node) >= curr_node.asm.low()
 			assert edge.edge_high(curr_node) <= curr_node.asm.high()
 			assert edge.node1 is curr_node or edge.node2 is curr_node
+
+
+		node_searched = False
 		for edge in search_space:
 
 			#changed to the existing implementation because of a small but possibly significant edge case:
@@ -211,9 +214,10 @@ while bad_edges: #run as long as bad_edges is not empty
 			# [(1,10), (2,8), (3, 20)]
 			# region_hi is intended to capture 20, but the line below would only capture up to 10 then halt
 #			if (edge.weight != -10 or (edge.opposite_node(bad_node) is other_node) ) and (edge.edge_high() > region_hi):
-			import pdb; pdb.set_trace()
+#			import pdb; pdb.set_trace()
 			if edge.weight != -10 or (edge.opposite_node(curr_node) is other_node):
 				if edge.edge_high(curr_node) > region_hi:
+					node_searched = True
 					region_hi = edge.edge_high(curr_node)
 					DEBUG_RIGHT_EDGE = edge
 					assert curr_node.asm.low() <= region_hi <= curr_node.asm.high()
@@ -226,12 +230,14 @@ while bad_edges: #run as long as bad_edges is not empty
 				break
 
 #		right_node_exists = curr_node.asm.high() - region_hi > 1 BROKEN FOR UNKNOWN REASONS
-		right_debug = curr_node
-		#note that these 2 lines will always run- so the first and last nodes in searched_nodes will be one prior and one after
-		#the last node searched at that extreme; this could potentially be NoneType, allowing for easy identification of scaffold-spanning
-		#chunk regions later
-		curr_node = curr_node.next
-		searched_nodes.append(curr_node)
+
+		if node_searched:
+			right_debug = curr_node
+			#note that these 2 lines will always run- so the first and last nodes in searched_nodes will be one prior and one after
+			#the last node searched at that extreme; this could potentially be NoneType, allowing for easy identification of scaffold-spanning
+			#chunk regions later
+			curr_node = curr_node.next
+			searched_nodes.append(curr_node)
 
 
 
@@ -261,8 +267,10 @@ while bad_edges: #run as long as bad_edges is not empty
 
 		left_exclusive_edges = []
 
+		node_searched = False
 		for edge in search_space:
 			if (edge.weight != -10 or (edge.opposite_node(curr_node) is other_node) ) and (edge.edge_low(curr_node) < region_lo):
+				node_searched = True
 				region_lo = edge.edge_low(curr_node)
 				DEBUG_LEFT_EDGE = edge
 				assert curr_node.asm.low() <= region_lo <= curr_node.asm.high()
@@ -274,9 +282,13 @@ while bad_edges: #run as long as bad_edges is not empty
 				break
 
 #		left_node_exists = region_lo - curr_node.asm.low() > 1 possibly also broken; refactoring both for consistency
-		left_debug = curr_node
-		curr_node = curr_node.prev
-		searched_nodes.append(curr_node)
+
+		#if node_searched is still false, no values were updated based on this node; it is a fringe node and would have
+		#already been added in the last iteration of the while loop, so nothing needs to be added to searched_nodes
+		if node_searched:
+			left_debug = curr_node
+			curr_node = curr_node.prev
+			searched_nodes.append(curr_node)
 
 	searched_nodes.reverse() #back to normal
 
