@@ -148,7 +148,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	assert seed_edge.edge_low(bad_node) >= bad_node.asm.low()
 	assert seed_edge.edge_high(bad_node) <= bad_node.asm.high()
 	assert seed_edge.edge_low(other_node) >= other_node.asm.low()
-	assert seed_edge.edge_high(other_node) <= bad_node.asm.high()
+	assert seed_edge.edge_high(other_node) <= other_node.asm.high()
 
 	'''
 	######## define the low/high coordinates/nodes of the region to be pulled out of its current scaffold and placed in another ################
@@ -194,7 +194,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	right_debug = bad_node
 	right_first_iter = True
 	while curr_node is not None and continue_search:
-
+		assert(curr_node is not other_node)
 		if right_first:
 			search_space = initial_right_list
 			for edge in search_space:
@@ -249,7 +249,7 @@ while bad_edges: #run as long as bad_edges is not empty
 			break
 		right_first_iter = False
 
-
+	assert(other_node not in searched_nodes)
 
 	continue_search = True
 	curr_node = bad_node
@@ -260,7 +260,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	left_debug = bad_node
 	left_first_iter = True
 	while curr_node is not None and continue_search:
-
+		assert(curr_node is not other_node)
 		if left_first:
 			search_space = initial_left_list
 			for edge in search_space:
@@ -306,6 +306,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		left_first_iter = False
 
 	searched_nodes.reverse() #back to normal
+	assert(other_node not in searched_nodes)
 
 #	if (len(searched_nodes)-2 > 20 ):
 #		print(region_hi - region_lo)
@@ -438,7 +439,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		assert len(searched_nodes[1].seq) == len(searched_nodes[1].asm)
 
 
-	edge_list.extend(edges_to_remove)
+	edge_list.update(edges_to_remove)
 	b_e_temp_set = set(bad_edges)
 	b_e_temp_set.difference_update(edge_list) #anything in edge_list that's also in b_e will be removed from b_e
 	bad_edges = list(b_e_temp_set)
@@ -509,26 +510,32 @@ while bad_edges: #run as long as bad_edges is not empty
 	if right_node_exists:
 		right_node.new_edge_endpoints(searched_nodes[-2])
 
-
+	print("shift new chunk")
 	chunk_node = searched_nodes[1]
 	shift_dist = other_node.asm.low() - chunk_node.asm.low()
 
+	debug_enum = 0
 	while chunk_node is not other_node:
+		#print(debug_enum)
 		chunk_node.shift(shift_dist)
 		for edge in chunk_node.get_edges():
 			assert edge.edge_low(chunk_node) >= chunk_node.asm.low()
 			assert edge.edge_high(chunk_node) <= chunk_node.asm.high()
 		chunk_node = chunk_node.next
+		debug_enum += 1
 
+	print("shift chunk's new right")
 	shift_distance = (searched_nodes[-2].asm.high() - other_node.asm.low()) + 1
 	new_right_node = other_node
+	debug_enum2 = 0
 	while new_right_node is not None:
+		#print(debug_enum2)
 		new_right_node.shift(shift_distance)
 		for edge in new_right_node.get_edges():
 			assert edge.edge_low(new_right_node) >= new_right_node.asm.low()
 			assert edge.edge_high(new_right_node) <= new_right_node.asm.high()
 		new_right_node = new_right_node.next
-
+		debug_enum2 += 1
 
 	if right_node_exists:
 		if right_node.prev is not None:
@@ -553,6 +560,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		else:
 			shift_dist = -(pre_iter.asm.low() - 1) #want right node to start at 1 since its a scaffold head in this case
 
+	print("shift chunk's old right")
 	while pre_iter is not None:
 		pre_iter.shift(shift_dist)
 		for edge in pre_iter.get_edges():
@@ -561,7 +569,12 @@ while bad_edges: #run as long as bad_edges is not empty
 		pre_iter = pre_iter.next
 
 
-
+	for head in scaffolds:
+		while head is not None:
+			for edge in head.get_edges():
+				assert edge.edge_low(head) >= head.asm.low()
+				assert edge.edge_high(head) <= head.asm.high()
+			head = head.next
 
 
 
