@@ -349,6 +349,10 @@ while bad_edges: #run as long as bad_edges is not empty
 	assert( searched_nodes[1].asm.low() <= region_lo <= searched_nodes[1].asm.high() )
 	assert( searched_nodes[-2].asm.low() <= region_hi <= searched_nodes[-2].asm.high() )
 
+	if len(bad_edges) == 1161:
+		pdb.set_trace()
+
+
 	'''
 	################# begin construction of possible new nodes at either end of the region ###################
 	'''
