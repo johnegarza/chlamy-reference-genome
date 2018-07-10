@@ -4,6 +4,7 @@ from fosmid_edge import Edge
 import argparse
 from contig_loc import ContigLocation
 import pysam
+import pdb
 
 ############# TO RUN ###############
 #	from graph directory:
@@ -135,6 +136,8 @@ samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
 
 debug_trimmed_nodes = set()
 
+debug_bad_edge = None
+debug_edge_info = []
 while bad_edges: #run as long as bad_edges is not empty
 
 	print(len(bad_edges))
@@ -143,11 +146,16 @@ while bad_edges: #run as long as bad_edges is not empty
 	if len(bad_edges) == 1161:
 		#offending edge is at position bad_edges[1]
 
+		debug_bad_edge = bad_edges[1]
+		debug_edge_info.append("set d_b_e")
+
+		'''
 		spots = []
 		for index, edge in enumerate(bad_edges):
 			if edge.asm1_original.name == "chromosome_3" and edge.asm1_original.left == 187189:
 				spots.append(index)
 		import pdb; pdb.set_trace()
+		'''
 
 	seed_edge = bad_edges[0]
 
@@ -177,6 +185,9 @@ while bad_edges: #run as long as bad_edges is not empty
 	initial_edges = bad_node.get_sorted_edges()
 
 	for edge in initial_edges:
+		if edge is debug_bad_edge:
+			debug_edge_info.append(189)
+			
 		assert edge.edge_low(bad_node) >= bad_node.asm.low()
 		assert edge.edge_high(bad_node) <= bad_node.asm.high()
 	'''
@@ -217,6 +228,8 @@ while bad_edges: #run as long as bad_edges is not empty
 		right_exclusive_edges = []
 
 		for edge in search_space:
+			if edge is debug_bad_edge:
+				debug_edge_info.append((232, "right scan", curr_node))
 			assert edge.edge_low(curr_node) >= curr_node.asm.low()
 			assert edge.edge_high(curr_node) <= curr_node.asm.high()
 			assert edge.node1 is curr_node or edge.node2 is curr_node
@@ -281,6 +294,9 @@ while bad_edges: #run as long as bad_edges is not empty
 			search_space = curr_node.get_sorted_edges()
 
 		for edge in search_space:
+			if edge is debug_bad_edge:
+				debug_edge_info.append((232, "right scan", curr_node))
+
 			assert edge.edge_low(curr_node) >= curr_node.asm.low()
 			assert edge.edge_high(curr_node) <= curr_node.asm.high()
 
