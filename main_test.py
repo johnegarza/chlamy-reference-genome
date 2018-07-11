@@ -488,7 +488,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	b_e_temp_set.difference_update(edge_list) #anything in edge_list that's also in b_e will be removed from b_e
 	bad_edges = list(b_e_temp_set)
 
-	bad_edges.sort( key = lambda e : e.edge_low(e.node1) ) #adding to make this stable/make the overall algorithm non-deterministic:
+#	bad_edges.sort( key = lambda e : e.edge_low(e.node1) ) #adding to make this stable/make the overall algorithm non-deterministic:
 	#I have a bug that shows up many iterations into the program, at seemingly random times, so it's difficult to debug manually with prints
 	#or with pdb. adding this to try to make the problem completely reproducible so I can hopefully finally track this down
 
@@ -558,7 +558,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	if right_node_exists:
 		right_node.new_edge_endpoints(searched_nodes[-2])
 
-	print("shift new chunk")
+#	print("shift new chunk")
 	chunk_node = searched_nodes[1]
 	shift_dist = other_node.asm.low() - chunk_node.asm.low()
 	new_name = other_node.asm.name
@@ -580,7 +580,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		chunk_node = chunk_node.next
 		debug_enum += 1
 
-	print("shift chunk's new right")
+#	print("shift chunk's new right")
 	shift_distance = (searched_nodes[-2].asm.high() - other_node.asm.low()) + 1
 	new_right_node = other_node
 	debug_enum2 = 0
@@ -616,7 +616,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		else:
 			shift_dist = -(pre_iter.asm.low() - 1) #want right node to start at 1 since its a scaffold head in this case
 
-	print("shift chunk's old right")
+#	print("shift chunk's old right")
 	while pre_iter is not None:
 		pre_iter.shift(shift_dist)
 		for edge in pre_iter.get_edges():
