@@ -18,9 +18,9 @@ args = parser.parse_args()
 alignment_file = args.alignments
 fosmid_pairs = args.fosmids
 
-scaffolds = [] #contains head node for each scaffold
-line_indexed_nodes = [] #to retrieve node at line n, call line_indexed_nodes[n-1]
-bad_edges = [] 	#used for iterating over bad edges and moving them
+scaffolds = [] #contains head node for every scaffold, each of which is a linked list 
+line_indexed_nodes = [] #to retrieve node at line n of alignment_file, call line_indexed_nodes[n-1]
+bad_edges = [] 	#used for keeping track of "bad" edges (those with endpoints in different scaffolds) so that they can be handled accordingly
 
 with open(alignment_file) as a_f:
 	alignment_data = csv.reader(a_f, delimiter="\t")
@@ -100,7 +100,6 @@ with open(fosmid_pairs) as f_p:
 
 	for pair in pair_data:
 
-
 		left_ref_start = int(pair[1])
 		left_ref_stop = int(pair[2])
 		left_asm_start = int(pair[4])
@@ -112,7 +111,6 @@ with open(fosmid_pairs) as f_p:
 		right_asm_start = int(pair[12])
 		right_asm_stop = int(pair[13])
 		right_block_line = int(pair[15])
-
 
 		node1 = line_indexed_nodes[left_block_line - 1]
 		node2 = line_indexed_nodes[right_block_line - 1]
@@ -134,7 +132,7 @@ line_indexed_nodes = []
 #TODO hardcoded during testing; make this an input parameter so it's dynamic TODO
 samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
 
-debug_trimmed_nodes = set()
+#debug_trimmed_nodes = set()
 
 debug_bad_edge = None
 debug_edge_info = []
@@ -342,8 +340,8 @@ while bad_edges: #run as long as bad_edges is not empty
 #	if (len(searched_nodes)-2 > 20 ):
 #		print(region_hi - region_lo)
 
-	debug_trimmed_nodes.add(left_debug)
-	debug_trimmed_nodes.add(right_debug)
+#	debug_trimmed_nodes.add(left_debug)
+#	debug_trimmed_nodes.add(right_debug)
 
 	assert(left_debug is searched_nodes[1])
 	assert(right_debug is searched_nodes[-2])
