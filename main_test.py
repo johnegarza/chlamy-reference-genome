@@ -132,28 +132,11 @@ line_indexed_nodes = []
 #TODO hardcoded during testing; make this an input parameter so it's dynamic TODO
 samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
 
-#debug_trimmed_nodes = set()
-
 debug_bad_edge = None
 debug_edge_info = []
 while bad_edges: #run as long as bad_edges is not empty
 
 	print(len(bad_edges))
-
-
-	if len(bad_edges) == 763:
-		#offending edge is at position bad_edges[1]
-
-		debug_bad_edge = bad_edges[1]
-		debug_edge_info.append("set d_b_e")
-
-		'''
-		spots = []
-		for index, edge in enumerate(bad_edges):
-			if edge.asm1_original.left == 833383:
-				spots.append(index)
-		import pdb; pdb.set_trace()
-		'''
 
 	seed_edge = bad_edges[0]
 
@@ -183,27 +166,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	initial_edges = bad_node.get_sorted_edges()
 
 	for edge in initial_edges:
-		if edge is debug_bad_edge:
-			debug_edge_info.append(189)
-			#pdb.set_trace()
 		assert edge.edge_low(bad_node) >= bad_node.asm.low()
 		assert edge.edge_high(bad_node) <= bad_node.asm.high()
-	'''
-	seed_pos = initial_edges.index(seed_edge)
-	initial_left_list = initial_edges[:seed_pos]
-	seed_pos += 1
-	initial_right_list = initial_edges[(seed_pos + 1):]
-	'''
-
-	'''
-	initial_left_list = []
-	initial_right_list = []
-	for edge in initial_edges:
-		if edge.edge_high(bad_node) <= seed_edge.edge_low(bad_node):
-			initial_left_list.append(edge)
-		elif edge.edge_low(bad_node) >= seed_edge.edge_high(bad_node):
-			initial_right_list.append(edge)
-	'''
 
 	initial_left_list = [ e for e in initial_edges if e.edge_low(bad_node) < seed_edge.edge_low(bad_node) ]
 	initial_right_list = [ e for e in initial_edges if e.edge_high(bad_node) > seed_edge.edge_high(bad_node) ]
@@ -247,12 +211,10 @@ while bad_edges: #run as long as bad_edges is not empty
 			# [(1,10), (2,8), (3, 20)]
 			# region_hi is intended to capture 20, but the line below would only capture up to 10 then halt
 #			if (edge.weight != -10 or (edge.opposite_node(bad_node) is other_node) ) and (edge.edge_high() > region_hi):
-#			import pdb; pdb.set_trace()
 			if edge.weight != -10 or (edge.opposite_node(curr_node) is other_node):
 				if edge.edge_high(curr_node) > region_hi:
 					node_searched = True
 					region_hi = edge.edge_high(curr_node)
-					DEBUG_RIGHT_EDGE = edge
 					assert curr_node.asm.low() <= region_hi <= curr_node.asm.high()
 					right_region_node = curr_node
 					edge_list.add(edge)
@@ -297,8 +259,6 @@ while bad_edges: #run as long as bad_edges is not empty
 			search_space = curr_node.get_sorted_edges()
 
 		for edge in search_space:
-			if edge is debug_bad_edge:
-				debug_edge_info.append((232, "right scan", curr_node))
 
 			assert edge.edge_low(curr_node) >= curr_node.asm.low()
 			assert edge.edge_high(curr_node) <= curr_node.asm.high()
@@ -313,7 +273,6 @@ while bad_edges: #run as long as bad_edges is not empty
 			if (edge.weight != -10 or (edge.opposite_node(curr_node) is other_node) ) and (edge.edge_low(curr_node) < region_lo):
 				node_searched = True
 				region_lo = edge.edge_low(curr_node)
-				DEBUG_LEFT_EDGE = edge
 				assert curr_node.asm.low() <= region_lo <= curr_node.asm.high()
 				left_region_node = curr_node
 				edge_list.add(edge)
@@ -340,9 +299,6 @@ while bad_edges: #run as long as bad_edges is not empty
 #	if (len(searched_nodes)-2 > 20 ):
 #		print(region_hi - region_lo)
 
-#	debug_trimmed_nodes.add(left_debug)
-#	debug_trimmed_nodes.add(right_debug)
-
 	assert(left_debug is searched_nodes[1])
 	assert(right_debug is searched_nodes[-2])
 
@@ -352,10 +308,6 @@ while bad_edges: #run as long as bad_edges is not empty
 	assert( searched_nodes[1].asm.low() <= region_lo <= searched_nodes[1].asm.high() )
 	assert( searched_nodes[-2].asm.low() <= region_hi <= searched_nodes[-2].asm.high() )
 
-#	if len(bad_edges) == 1161:
-#		pdb.set_trace()
-
-
 	'''
 	################# begin construction of possible new nodes at either end of the region ###################
 	'''
@@ -363,7 +315,6 @@ while bad_edges: #run as long as bad_edges is not empty
 	edges_to_remove = []
 
 	chunk_len = (region_hi - region_lo) + 1
-#	right_split_index = region_hi - 
 
 	if left_node_exists:
 
@@ -486,9 +437,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	b_e_temp_set.difference_update(edge_list) #anything in edge_list that's also in b_e will be removed from b_e
 	bad_edges = list(b_e_temp_set)
 
-#	bad_edges.sort( key = lambda e : e.edge_low(e.node1) ) #adding to make this stable/make the overall algorithm non-deterministic:
-	#I have a bug that shows up many iterations into the program, at seemingly random times, so it's difficult to debug manually with prints
-	#or with pdb. adding this to try to make the problem completely reproducible so I can hopefully finally track this down
+	#leaving this line in so the script will give consistent results; may allow user to toggle this in later builds
+	bad_edges.sort( key = lambda e : e.edge_low(e.node1) ) #adding to make this stable/make the overall algorithm non-deterministic
 
 
 	############### setting/updating prev and next for all affected nodes ################
@@ -556,14 +506,11 @@ while bad_edges: #run as long as bad_edges is not empty
 	if right_node_exists:
 		right_node.new_edge_endpoints(searched_nodes[-2])
 
-#	print("shift new chunk")
 	chunk_node = searched_nodes[1]
 	shift_dist = other_node.asm.low() - chunk_node.asm.low()
 	new_name = other_node.asm.name
 
-	debug_enum = 0
 	while chunk_node is not other_node:
-		#print(debug_enum)
 		chunk_node.shift(shift_dist)
 		chunk_node.asm.name = new_name
 		for edge in chunk_node.get_edges():
@@ -576,20 +523,15 @@ while bad_edges: #run as long as bad_edges is not empty
 			assert edge.edge_low(chunk_node) >= chunk_node.asm.low()
 			assert edge.edge_high(chunk_node) <= chunk_node.asm.high()
 		chunk_node = chunk_node.next
-		debug_enum += 1
 
-#	print("shift chunk's new right")
 	shift_distance = (searched_nodes[-2].asm.high() - other_node.asm.low()) + 1
 	new_right_node = other_node
-	debug_enum2 = 0
 	while new_right_node is not None:
-		#print(debug_enum2)
 		new_right_node.shift(shift_distance)
 		for edge in new_right_node.get_edges():
 			assert edge.edge_low(new_right_node) >= new_right_node.asm.low()
 			assert edge.edge_high(new_right_node) <= new_right_node.asm.high()
 		new_right_node = new_right_node.next
-		debug_enum2 += 1
 
 	if right_node_exists:
 		if right_node.prev is not None:
@@ -614,7 +556,6 @@ while bad_edges: #run as long as bad_edges is not empty
 		else:
 			shift_dist = -(pre_iter.asm.low() - 1) #want right node to start at 1 since its a scaffold head in this case
 
-#	print("shift chunk's old right")
 	while pre_iter is not None:
 		pre_iter.shift(shift_dist)
 		for edge in pre_iter.get_edges():
