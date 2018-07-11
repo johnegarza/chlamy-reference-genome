@@ -197,6 +197,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	initial_right_list = initial_edges[(seed_pos + 1):]
 	'''
 
+	'''
 	initial_left_list = []
 	initial_right_list = []
 	for edge in initial_edges:
@@ -204,6 +205,10 @@ while bad_edges: #run as long as bad_edges is not empty
 			initial_left_list.append(edge)
 		elif edge.edge_low(bad_node) >= seed_edge.edge_high(bad_node):
 			initial_right_list.append(edge)
+	'''
+
+	initial_left_list = [ e for e in initial_edges if e.edge_low(bad_node) < seed_edge.edge_low(bad_node) ]
+	initial_right_list = [ e for e in initial_edges if e.edge_high(bad_node) > seed_edge.edge_high(bad_node) ]
 
 	left_first = True
 	right_first = True
@@ -218,9 +223,9 @@ while bad_edges: #run as long as bad_edges is not empty
 		assert(curr_node is not other_node)
 		if right_first:
 			search_space = initial_right_list
-			for edge in search_space:
-				assert edge.edge_low(curr_node) >= seed_edge.edge_high(curr_node)
-				assert edge.edge_high(curr_node) <= curr_node.asm.high()
+#			for edge in search_space:
+#				assert edge.edge_low(curr_node) >= seed_edge.edge_high(curr_node)
+#				assert edge.edge_high(curr_node) <= curr_node.asm.high()
 			right_first = False
 		else:
 			search_space = curr_node.get_sorted_edges()
@@ -286,9 +291,9 @@ while bad_edges: #run as long as bad_edges is not empty
 		assert(curr_node is not other_node)
 		if left_first:
 			search_space = initial_left_list
-			for edge in search_space:
-				assert edge.edge_low(curr_node) >= curr_node.asm.low()
-				assert edge.edge_high(curr_node) <= seed_edge.edge_low(curr_node)
+#			for edge in search_space:
+#				assert edge.edge_low(curr_node) >= curr_node.asm.low()
+#				assert edge.edge_high(curr_node) <= seed_edge.edge_low(curr_node)
 			left_first = False
 		else:
 			search_space = curr_node.get_sorted_edges()
@@ -349,8 +354,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	assert( searched_nodes[1].asm.low() <= region_lo <= searched_nodes[1].asm.high() )
 	assert( searched_nodes[-2].asm.low() <= region_hi <= searched_nodes[-2].asm.high() )
 
-	if len(bad_edges) == 1161:
-		pdb.set_trace()
+#	if len(bad_edges) == 1161:
+#		pdb.set_trace()
 
 
 	'''
@@ -419,6 +424,10 @@ while bad_edges: #run as long as bad_edges is not empty
 		searched_nodes[1].seq = searched_nodes[1].seq[left_trim_dist:]
 		assert len(searched_nodes[1].seq) == len(searched_nodes[1].asm)
 
+		checker = searched_nodes[1]
+		for edge in checker.get_edges():
+			assert checker.asm.low() <= edge.edge_low(checker) < edge.edge_high(checker) <= checker.asm.high()
+
 	if right_node_exists:
 
 		right_edges = searched_nodes[-2].get_sorted_edges()
@@ -466,7 +475,12 @@ while bad_edges: #run as long as bad_edges is not empty
 		right_node.seq = right_seq
 		assert len(right_seq) == len(right_asm_CL)
 		searched_nodes[-2].seq = searched_nodes[-2].seq[:(right_trim_dist + 1)]
-		assert len(searched_nodes[1].seq) == len(searched_nodes[1].asm)
+		assert len(searched_nodes[-2].seq) == len(searched_nodes[-2].asm)
+
+		checker = searched_nodes[-2]
+		for edge in checker.get_edges():
+			assert checker.asm.low() <= edge.edge_low(checker) < edge.edge_high(checker) <= checker.asm.high()
+
 
 
 	edge_list.update(edges_to_remove)
