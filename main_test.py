@@ -143,7 +143,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	print(len(bad_edges))
 
 
-	if len(bad_edges) == 1161:
+	if len(bad_edges) == 763:
 		#offending edge is at position bad_edges[1]
 
 		debug_bad_edge = bad_edges[1]
@@ -152,7 +152,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		'''
 		spots = []
 		for index, edge in enumerate(bad_edges):
-			if edge.asm1_original.name == "chromosome_3" and edge.asm1_original.left == 187189:
+			if edge.asm1_original.left == 833383:
 				spots.append(index)
 		import pdb; pdb.set_trace()
 		'''
@@ -187,7 +187,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	for edge in initial_edges:
 		if edge is debug_bad_edge:
 			debug_edge_info.append(189)
-			
+			#pdb.set_trace()
 		assert edge.edge_low(bad_node) >= bad_node.asm.low()
 		assert edge.edge_high(bad_node) <= bad_node.asm.high()
 	'''
@@ -209,13 +209,13 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	initial_left_list = [ e for e in initial_edges if e.edge_low(bad_node) < seed_edge.edge_low(bad_node) ]
 	initial_right_list = [ e for e in initial_edges if e.edge_high(bad_node) > seed_edge.edge_high(bad_node) ]
-
+	edge_cases = [ e for e in initial_edges if e not in initial_left_list and e not in initial_right_list ]
 	left_first = True
 	right_first = True
 
 	edge_list = set()
 	edge_list.add(seed_edge)
-
+	edge_list.update(edge_cases) #THIS MIGHT BE THE LINE THAT FIXES THIS DAMN BUG ONCE AND FOR ALL
 	#search right
 	right_debug = bad_node
 	right_first_iter = True
