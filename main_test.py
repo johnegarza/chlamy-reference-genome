@@ -273,10 +273,16 @@ while bad_edges: #run as long as bad_edges is not empty
 	if (region1[2] - region1[1]) > (region2[2] - region2[1]):
 		bad_node = seed_edge.node1
 		other_node = seed_edge.node2
+		region = region1
 	else:
 		bad_node = seed_edge.node2
 		other_node = seed_edge.node1
+		region = region2
 	insert_left = other_node.prev
+	searched_nodes = region[0]
+	region_lo = region[1]
+	region_hi = region[2]
+	edge_list = region[3]
 
 	left_node_exists = region_lo - searched_nodes[1].asm.low() > 1
 	right_node_exists = region_hi - searched_nodes[-2].asm.high() > 1
