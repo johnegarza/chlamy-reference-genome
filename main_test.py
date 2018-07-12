@@ -132,77 +132,50 @@ line_indexed_nodes = []
 #TODO hardcoded during testing; make this an input parameter so it's dynamic TODO
 samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
 
-debug_bad_edge = None
-debug_edge_info = []
-while bad_edges: #run as long as bad_edges is not empty
-
-	print(len(bad_edges))
-
-	seed_edge = bad_edges[0]
-
-	bad_node = seed_edge.node1
-	other_node = seed_edge.node2
-	insert_left = other_node.prev
-
-	assert seed_edge.edge_low(bad_node) >= bad_node.asm.low()
-	assert seed_edge.edge_high(bad_node) <= bad_node.asm.high()
-	assert seed_edge.edge_low(other_node) >= other_node.asm.low()
-	assert seed_edge.edge_high(other_node) <= other_node.asm.high()
-
-	'''
-	######## define the low/high coordinates/nodes of the region to be pulled out of its current scaffold and placed in another ################
-	'''
-
-	continue_search = True
-	curr_node = bad_node
+def find_chunk_region(seed_edge, bad_node, other_node):
+	#initialize variables
 	searched_nodes = [bad_node]
 	region_lo = seed_edge.edge_low(bad_node)
 	region_hi = seed_edge.edge_high(bad_node)
-	left_region_node = None
-	right_region_node = None
+	other_name = other_node.asm.name
 
-	#hack to make the loop handle all the work, even the initial case, despite possible edge case (if bad_node has sorted edges at either end
+
+	#hack to make the search loops handle all the work, even the initial case, despite possible edge case (if bad_node has sorted edges at either end
 	#that match to another scaffold's node, aside from other_node, search would fail to extend boundaries from seed_edge)
 	initial_edges = bad_node.get_sorted_edges()
 
-	for edge in initial_edges:
-		assert edge.edge_low(bad_node) >= bad_node.asm.low()
-		assert edge.edge_high(bad_node) <= bad_node.asm.high()
-
+	#TODO in this case it should be more efficient to write a single loop with an if/elif/else block placing into left/right/edge list respectively
 	initial_left_list = [ e for e in initial_edges if e.edge_low(bad_node) < seed_edge.edge_low(bad_node) ]
 	initial_right_list = [ e for e in initial_edges if e.edge_high(bad_node) > seed_edge.edge_high(bad_node) ]
 	edge_cases = [ e for e in initial_edges if e not in initial_left_list and e not in initial_right_list ]
-	left_first = True
-	right_first = True
 
-	edge_list = set()
+
+	#edges that will be removed from bad_edges once the chunk region is fully defined
+	edge_list = set() #TODO construction of this set in this method is not necessarily safe; remove this portion and instead develop & rely on edge_to_remove
 	edge_list.add(seed_edge)
-	edge_list.update(edge_cases) #THIS MIGHT BE THE LINE THAT FIXES THIS DAMN BUG ONCE AND FOR ALL
-	#search right
-	right_debug = bad_node
-	right_first_iter = True
-	while curr_node is not None and continue_search:
-		assert(curr_node is not other_node)
-		if right_first:
+	edge_list.update(edge_cases) #TODO in the future, should actually consider these edges; for now, they are being ignored-
+	#they are removed from bad_edges, but still exist; may want to explicitly remove them from their containing nodes as well
+	#however, make sure not to accidentally delete seed_edge, as it will be in edge_cases
+
+
+
+	#attempt to extend region_hi by searching to the right
+
+	curr_node = bad_node #loop iteration variable
+	continue_search = True #flag to allow breaking out of the outer while loop from the inner for loop
+	first_iteration = True #flag to set initial conditions in the first iteration of the while loop
+
+	while curr_node is not None and continue_search: #if curr_node is None, it's the end of a scaffold
+
+		node_searched = False #flag that tracks whether or not region_hi has been extended into this node
+
+		if first_iteration:
 			search_space = initial_right_list
-#			for edge in search_space:
-#				assert edge.edge_low(curr_node) >= seed_edge.edge_high(curr_node)
-#				assert edge.edge_high(curr_node) <= curr_node.asm.high()
-			right_first = False
+			node_searched = True #by definition, since curr_node is bad_node and region_hi is within bad_node
+			first_iteration = False
 		else:
 			search_space = curr_node.get_sorted_edges()
 
-		right_exclusive_edges = []
-
-		for edge in search_space:
-			if edge is debug_bad_edge:
-				debug_edge_info.append((232, "right scan", curr_node))
-			assert edge.edge_low(curr_node) >= curr_node.asm.low()
-			assert edge.edge_high(curr_node) <= curr_node.asm.high()
-			assert edge.node1 is curr_node or edge.node2 is curr_node
-
-
-		node_searched = False
 		for edge in search_space:
 
 			#changed to the existing implementation because of a small but possibly significant edge case:
@@ -211,99 +184,102 @@ while bad_edges: #run as long as bad_edges is not empty
 			# [(1,10), (2,8), (3, 20)]
 			# region_hi is intended to capture 20, but the line below would only capture up to 10 then halt
 #			if (edge.weight != -10 or (edge.opposite_node(bad_node) is other_node) ) and (edge.edge_high() > region_hi):
-			if edge.weight != -10 or (edge.opposite_node(curr_node) is other_node):
+
+
+			#an edge weight of -10 indicates an edge with endpoints in 2 different scaffolds; thus region_hi can only be
+			#extended by edges that either have both endpoints in the current scaffold, or have their second endpoint in
+			#the same scaffold as other_node. Conversely, this means the search halts when either an edge with an endpoint in
+			#a third scaffold is encountered, or when the end of the scaffold is reached (when curr_node is None)
+
+			if edge.weight != -10 or (edge.opposite_node(curr_node).asm.name == other_name):
 				if edge.edge_high(curr_node) > region_hi:
-					node_searched = True
 					region_hi = edge.edge_high(curr_node)
-					assert curr_node.asm.low() <= region_hi <= curr_node.asm.high()
-					right_region_node = curr_node
+					node_searched = True
 					edge_list.add(edge)
-					right_exclusive_edges.append(edge)
 			else:
-				#break out of this while loop
-				continue_search = False
+				continue_search = False #region_hi cannot be extended any further, so stop the search (while) loop
 				break
 
-#		right_node_exists = curr_node.asm.high() - region_hi > 1 BROKEN FOR UNKNOWN REASONS
+		if node_searched: #indicates that region_hi was extended into this node during the search
 
-		if node_searched or right_first_iter:
-			right_debug = curr_node
-			#note that these 2 lines will always run- so the first and last nodes in searched_nodes will be one prior and one after
-			#the last node searched at that extreme; this could potentially be NoneType, allowing for easy identification of scaffold-spanning
+			#searched_nodes[0] will always be the .prev of the node containing region_lo, and searched_nodes[-1] will always be the .next
+			#of the node containing region_hi; one or both could potentially be NoneType, allowing for easy identification of scaffold-spanning
 			#chunk regions later
 			curr_node = curr_node.next
 			searched_nodes.append(curr_node)
 		else:
+			#in this case, region_hi was not extended into this node, so this should be searched_nodes[-1]; it would have already
+			#been appended in the previous iteration of this while loop, so there is no work to be done and the search is complete
 			break
-		right_first_iter = False
 
-	assert(other_node not in searched_nodes)
 
-	continue_search = True
+
+	#attempt to extend region_lo by searching to the left
+
 	curr_node = bad_node
+	continue_search = True
 	#want to be able to efficiently add to the beginning of this list; still want efficient random access, so no deque (TODO- is random access necessary?)
 	searched_nodes.reverse()
+	first_iteration = True
 
-	#search left
-	left_debug = bad_node
-	left_first_iter = True
 	while curr_node is not None and continue_search:
-		assert(curr_node is not other_node)
-		if left_first:
+
+		node_searched = False
+
+		if first_iteration:
 			search_space = initial_left_list
-#			for edge in search_space:
-#				assert edge.edge_low(curr_node) >= curr_node.asm.low()
-#				assert edge.edge_high(curr_node) <= seed_edge.edge_low(curr_node)
-			left_first = False
+			node_searched = True
+			first_iteration = False
 		else:
 			search_space = curr_node.get_sorted_edges()
-
-		for edge in search_space:
-
-			assert edge.edge_low(curr_node) >= curr_node.asm.low()
-			assert edge.edge_high(curr_node) <= curr_node.asm.high()
 
 		#otherwise this would always choose search_space[0] due to ordering
 		search_space.reverse()
 
-		left_exclusive_edges = []
-
-		node_searched = False
 		for edge in search_space:
-			if (edge.weight != -10 or (edge.opposite_node(curr_node) is other_node) ) and (edge.edge_low(curr_node) < region_lo):
-				node_searched = True
+			if (edge.weight != -10 or (edge.opposite_node(curr_node).asm.name == other_name) ) and (edge.edge_low(curr_node) < region_lo):
 				region_lo = edge.edge_low(curr_node)
-				assert curr_node.asm.low() <= region_lo <= curr_node.asm.high()
-				left_region_node = curr_node
+				node_searched = True
 				edge_list.add(edge)
-				left_exclusive_edges.append(edge)
 			else:
 				continue_search = False
 				break
 
-#		left_node_exists = region_lo - curr_node.asm.low() > 1 possibly also broken; refactoring both for consistency
-
-		#if node_searched is still false, no values were updated based on this node; it is a fringe node and would have
-		#already been added in the last iteration of the while loop, so nothing needs to be added to searched_nodes
-		if node_searched or left_first_iter:
-			left_debug = curr_node
+		if node_searched:
 			curr_node = curr_node.prev
 			searched_nodes.append(curr_node)
 		else:
 			break
-		left_first_iter = False
 
 	searched_nodes.reverse() #back to normal
-	assert(other_node not in searched_nodes)
 
-#	if (len(searched_nodes)-2 > 20 ):
-#		print(region_hi - region_lo)
+	return (searched_nodes, region_lo, region_hi, edge_list)
 
-	assert(left_debug is searched_nodes[1])
-	assert(right_debug is searched_nodes[-2])
+'''
+###################### BEGIN MAIN PORTION OF SCRIPT ##############################	
+'''
 
-	left_node_exists = region_lo - left_debug.asm.low() > 1
-	right_node_exists = region_hi - right_debug.asm.high() > 1
+while bad_edges: #run as long as bad_edges is not empty
+
+	print(len(bad_edges))
+
+	#technically, seed_edge and bad_node are not needed in the script's current form, but for legacy and ease of 
+	#use during development, they are defined here. May remove in cleanup down the line.
+
+	seed_edge = bad_edges[0]
+	region1 = find_chunk_region(seed_edge, seed_edge.node1, seed_edge.node2)
+	region2 = find_chunk_region(seed_edge, seed_edge.node2, seed_edge.node1)
+
+	if (region1[2] - region1[1]) > (region2[2] - region2[1]):
+		bad_node = seed_edge.node1
+		other_node = seed_edge.node2
+	else:
+		bad_node = seed_edge.node2
+		other_node = seed_edge.node1
+	insert_left = other_node.prev
+
+	left_node_exists = region_lo - searched_nodes[1].asm.low() > 1
+	right_node_exists = region_hi - searched_nodes[-2].asm.high() > 1
 
 	assert( searched_nodes[1].asm.low() <= region_lo <= searched_nodes[1].asm.high() )
 	assert( searched_nodes[-2].asm.low() <= region_hi <= searched_nodes[-2].asm.high() )
@@ -338,18 +314,6 @@ while bad_edges: #run as long as bad_edges is not empty
 		edges_to_remove.extend(border_edges)
 		edges_to_remove.extend(left_chunk_edges)
 
-		'''
-		#left_exclusive_edges has all edges in searched_nodes[1] that DO NOT belong in the new left node, plus others;
-		#difference update removes all elements that occur in its argument
-		left_edges.difference_update(left_exclusive_edges)
-		for edge in left_edges:
-			assert edge.edge_low(searched_nodes[1]) >= searched_nodes[1].asm.low()
-			assert edge.edge_high(searched_nodes[1]) <= (region_lo - 1)
-
-
-		left_chunk_edges = set(searched_nodes[1].get_edges())
-		left_chunk_edges.difference_update(left_edges)
-		'''
 		searched_nodes[1]._edges = left_chunk_edges
 		searched_nodes[1]._edges_sorted = False
 
@@ -380,7 +344,6 @@ while bad_edges: #run as long as bad_edges is not empty
 	if right_node_exists:
 
 		right_edges = searched_nodes[-2].get_sorted_edges()
-#		right_edges.difference_update(right_exclusive_edges)
 
 		right_node_edges = []
 		border_edges2 = []
