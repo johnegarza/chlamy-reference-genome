@@ -168,7 +168,7 @@ def find_chunk_region(s_e, b_n, o_n):
 		else:
 			edge_cases.append(edge)
 
-	print(len(edge_cases))
+#	print(len(edge_cases))
 	assert seed_edge in edge_cases
 
 	#edges that will be removed from bad_edges once the chunk region is fully defined
@@ -221,6 +221,11 @@ def find_chunk_region(s_e, b_n, o_n):
 				continue_search = False #region_hi cannot be extended any further, so stop the search (while) loop
 				break
 
+		#make sure nodes with no edges don't prematurely halt the search
+		if len(search_space) == 0:
+			node_searched = True
+			region_hi = curr_node.asm.high()
+
 		if node_searched: #indicates that region_hi was extended into this node during the search
 
 			#searched_nodes[0] will always be the .prev of the node containing region_lo, and searched_nodes[-1] will always be the .next
@@ -266,6 +271,10 @@ def find_chunk_region(s_e, b_n, o_n):
 				continue_search = False
 				break
 
+		if len(search_space) == 0:
+			node_searched = True
+			region_lo = curr_node.asm.low()
+
 		if node_searched:
 			curr_node = curr_node.prev
 			searched_nodes.append(curr_node)
@@ -285,6 +294,9 @@ def find_chunk_region(s_e, b_n, o_n):
 ###################### BEGIN MAIN PORTION OF SCRIPT ##############################	
 '''
 
+tracker1 = 0
+tracker2 = 0
+
 while bad_edges: #run as long as bad_edges is not empty
 
 	print(len(bad_edges))
@@ -296,10 +308,6 @@ while bad_edges: #run as long as bad_edges is not empty
 	region1 = find_chunk_region(seed_edge, seed_edge.node1, seed_edge.node2)
 	region2 = find_chunk_region(seed_edge, seed_edge.node2, seed_edge.node1)
 
-	tracker1 = 0
-	tracker2 = 0
-
-	
 	if (region1[2] - region1[1]) > (region2[2] - region2[1]):
 		bad_node = seed_edge.node1
 		other_node = seed_edge.node2
