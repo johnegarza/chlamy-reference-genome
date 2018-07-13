@@ -296,17 +296,23 @@ while bad_edges: #run as long as bad_edges is not empty
 	region1 = find_chunk_region(seed_edge, seed_edge.node1, seed_edge.node2)
 	region2 = find_chunk_region(seed_edge, seed_edge.node2, seed_edge.node1)
 
-	'''
+	tracker1 = 0
+	tracker2 = 0
+
+	
 	if (region1[2] - region1[1]) > (region2[2] - region2[1]):
 		bad_node = seed_edge.node1
 		other_node = seed_edge.node2
 		region = region1
+		tracker1 += 1
 	else:
 		bad_node = seed_edge.node2
 		other_node = seed_edge.node1
 		region = region2
-	'''
+		tracker2 += 1
+	
 
+	'''
 	#for some reason this code does not produce errors:
 #	bad_node = seed_edge.node1
 #	other_node = seed_edge.node2
@@ -316,6 +322,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	bad_node = seed_edge.node2
 	other_node = seed_edge.node1
 	region = region2
+	'''
 
 	insert_left = other_node.prev
 	searched_nodes = region[0]
@@ -506,7 +513,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	bad_edges = list(b_e_temp_set)
 
 	#leaving this line in so the script will give consistent results; may allow user to toggle this in later builds
-	bad_edges.sort( key = lambda e : e.edge_low(e.node1) ) #adding to make this stable/make the overall algorithm non-deterministic
+#	bad_edges.sort( key = lambda e : e.edge_low(e.node1) ) #adding to make this stable/make the overall algorithm non-deterministic
 
 	#update $scaffolds
 	if searched_nodes[0] is None:
@@ -604,7 +611,7 @@ while bad_edges: #run as long as bad_edges is not empty
 			head = head.next
 
 
-
+print tracker1, tracker2
 
 
 

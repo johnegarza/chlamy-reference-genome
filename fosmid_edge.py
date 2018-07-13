@@ -51,7 +51,8 @@ class Edge:
 		'''
 	def destroy(self):
 		self.node1.remove_edge(self)
-		self.node2.remove_edge(self)
+		if self.node1 is not self.node2: #so there aren't removal errors when this is an edge with both endpoints in the same node
+			self.node2.remove_edge(self)
 		self.asm1 = None #to make this explicitly throw errors if I accidentally leave a reference to this edge and try to access it later
 		self.asm2 = None
 		self.weight = None
