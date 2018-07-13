@@ -132,7 +132,14 @@ line_indexed_nodes = []
 #TODO hardcoded during testing; make this an input parameter so it's dynamic TODO
 samfile = pysam.AlignmentFile("../novoalign/imp3.merged.sorted.bam", "rb")
 
-def find_chunk_region(seed_edge, bad_node, other_node):
+def find_chunk_region(s_e, b_n, o_n):
+
+	seed_edge = s_e
+	bad_node = b_n
+	other_node = o_n
+
+	assert bad_node.asm.name != other_node.asm.name
+
 	#initialize variables
 	searched_nodes = [bad_node]
 	region_lo = seed_edge.edge_low(bad_node)
@@ -145,10 +152,24 @@ def find_chunk_region(seed_edge, bad_node, other_node):
 	initial_edges = bad_node.get_sorted_edges()
 
 	#TODO in this case it should be more efficient to write a single loop with an if/elif/else block placing into left/right/edge list respectively
-	initial_left_list = [ e for e in initial_edges if e.edge_low(bad_node) < seed_edge.edge_low(bad_node) ]
-	initial_right_list = [ e for e in initial_edges if e.edge_high(bad_node) > seed_edge.edge_high(bad_node) ]
-	edge_cases = [ e for e in initial_edges if e not in initial_left_list and e not in initial_right_list ]
+#	initial_left_list = [ e for e in initial_edges if e.edge_low(bad_node) < seed_edge.edge_low(bad_node) ]
+#	initial_right_list = [ e for e in initial_edges if e.edge_high(bad_node) > seed_edge.edge_high(bad_node) ]
+#	edge_cases = [ e for e in initial_edges if e not in initial_left_list and e not in initial_right_list ]
 
+	initial_left_list = []
+	initial_right_list = []
+	edge_cases = []
+
+	for edge in initial_edges:
+		if edge.edge_low(bad_node) < seed_edge.edge_low(bad_node):
+			initial_left_list.append(edge)
+		elif edge.edge_high(bad_node) > seed_edge.edge_high(bad_node):
+			initial_right_list.append(edge)
+		else:
+			edge_cases.append(edge)
+
+	print(len(edge_cases))
+	assert seed_edge in edge_cases
 
 	#edges that will be removed from bad_edges once the chunk region is fully defined
 	edge_list = set() #TODO construction of this set in this method is not necessarily safe; remove this portion and instead develop & rely on edge_to_remove
@@ -253,6 +274,11 @@ def find_chunk_region(seed_edge, bad_node, other_node):
 
 	searched_nodes.reverse() #back to normal
 
+	for node in searched_nodes:
+		if node is not None:
+			assert node.next is not node
+			assert node.prev is not node
+
 	return (searched_nodes, region_lo, region_hi, edge_list)
 
 '''
@@ -270,6 +296,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	region1 = find_chunk_region(seed_edge, seed_edge.node1, seed_edge.node2)
 	region2 = find_chunk_region(seed_edge, seed_edge.node2, seed_edge.node1)
 
+	'''
 	if (region1[2] - region1[1]) > (region2[2] - region2[1]):
 		bad_node = seed_edge.node1
 		other_node = seed_edge.node2
@@ -278,12 +305,24 @@ while bad_edges: #run as long as bad_edges is not empty
 		bad_node = seed_edge.node2
 		other_node = seed_edge.node1
 		region = region2
+	'''
+
+	#for some reason this code does not produce errors:
+#	bad_node = seed_edge.node1
+#	other_node = seed_edge.node2
+#	region = region1
+
+	#but this does?
+	bad_node = seed_edge.node2
+	other_node = seed_edge.node1
+	region = region2
+
 	insert_left = other_node.prev
 	searched_nodes = region[0]
 	region_lo = region[1]
 	region_hi = region[2]
 	edge_list = region[3]
-
+	assert(len(searched_nodes) > 2)
 	left_node_exists = region_lo - searched_nodes[1].asm.low() > 1
 	right_node_exists = region_hi - searched_nodes[-2].asm.high() > 1
 
@@ -424,6 +463,11 @@ while bad_edges: #run as long as bad_edges is not empty
 	else:
 		rightmost = searched_nodes[0]
 
+	for node in searched_nodes:
+		if node is not None:
+			assert node.next is not node
+			assert node.prev is not node
+
 	if leftmost is not None:
 		leftmost.prev = searched_nodes[0]
 	if rightmost is not None:
@@ -440,6 +484,11 @@ while bad_edges: #run as long as bad_edges is not empty
 		insert_left.next = searched_nodes[1]
 	searched_nodes[-2].next = other_node
 	other_node.prev = searched_nodes[-2]
+
+	for node in searched_nodes:
+		if node is not None:
+			assert node.next is not node
+			assert node.prev is not node
 
 
 	chunk_node = searched_nodes[1]
@@ -458,7 +507,6 @@ while bad_edges: #run as long as bad_edges is not empty
 
 	#leaving this line in so the script will give consistent results; may allow user to toggle this in later builds
 	bad_edges.sort( key = lambda e : e.edge_low(e.node1) ) #adding to make this stable/make the overall algorithm non-deterministic
-
 
 	#update $scaffolds
 	if searched_nodes[0] is None:

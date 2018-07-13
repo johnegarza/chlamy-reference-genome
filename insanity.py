@@ -138,6 +138,9 @@ debug_trimmed_nodes = set()
 
 debug_bad_edge = None
 debug_edge_info = []
+
+print("yo" + str(len(scaffolds)))
+
 while bad_edges: #run as long as bad_edges is not empty
 
 	print(len(bad_edges))
