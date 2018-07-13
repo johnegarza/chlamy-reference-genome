@@ -626,5 +626,42 @@ print tracker1, tracker2
 if placement:
 	print("WE DID IT")
 
+	with open("placed.txt", "w") as o_f:
+		for head in scaffolds:
+			while head is not None:
+				o_f.write(str(head))
+				o_f.write("\n")
+				head = head.next
+
+			o_f.write("\n")
+
+	with open("placed.fasta", "w") as fasta:
+		total = str(len(scaffolds))
+		for num, head in enumerate(scaffolds):
+			print(str(num) + "/" + total)
+			curr_seq = ""
+			seq_name = ""
+			while head is not None:
+				seq_name = head.asm.name
+				curr_seq += head.seq
+				head = head.next
+
+			fasta.write(">" + seq_name)
+			fasta.write("\n")
+			print("writing fasta seq for this scaffold")
+			print(len(curr_seq))
+
+			loop_num = 0
+			denom = len(curr_seq)/80.0
+			while len(curr_seq) > 80:
+				fasta.write(curr_seq[:80])
+				fasta.write("\n")
+				curr_seq = curr_seq[80:]
+				loop_num += 1
+				if loop_num % 1500 == 0:
+					print( str( (loop_num / denom)*100 ) + "%")
+			fasta.write(curr_seq)
+			fasta.write("\n")
+			fasta.write("\n")
 
 
