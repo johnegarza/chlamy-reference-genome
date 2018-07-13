@@ -318,8 +318,11 @@ while bad_edges: #run as long as bad_edges is not empty
 				left_chunk_edges.append(edge)
 
 		edges_to_remove.extend(border_edges)
-		edges_to_remove.extend(left_chunk_edges)
+#		edges_to_remove.extend(left_chunk_edges) if right_node exists, this will accidentally remove bad edges from right_node, but they should remain there
+		for edge in border_edges:
+			edge.destroy()
 
+		#TODO may want to refactor this to using internal node methods instead of explicitly setting values like this
 		searched_nodes[1]._edges = left_chunk_edges
 		searched_nodes[1]._edges_sorted = False
 
@@ -364,7 +367,10 @@ while bad_edges: #run as long as bad_edges is not empty
 				right_node_edges.append(edge)
 
 		edges_to_remove.extend(border_edges2)
-		edges_to_remove.extend(right_chunk_edges)
+#		edges_to_remove.extend(right_chunk_edges) safer than the call that extends by left_chunk_edges (see comment there), but removing anyway to rewrite
+		#all of the chunk region edge removal logic
+		for edge in border_edges2:
+			edge.destroy()
 
 		'''
 		right_chunk_edges = set(searched_nodes[-2].get_edges())
@@ -399,17 +405,7 @@ while bad_edges: #run as long as bad_edges is not empty
 		for edge in checker.get_edges():
 			assert checker.asm.low() <= edge.edge_low(checker) < edge.edge_high(checker) <= checker.asm.high()
 
-
-
-	edge_list.update(edges_to_remove)
-	b_e_temp_set = set(bad_edges)
-	b_e_temp_set.difference_update(edge_list) #anything in edge_list that's also in b_e will be removed from b_e
-	bad_edges = list(b_e_temp_set)
-
-	#leaving this line in so the script will give consistent results; may allow user to toggle this in later builds
-	bad_edges.sort( key = lambda e : e.edge_low(e.node1) ) #adding to make this stable/make the overall algorithm non-deterministic
-
-
+	
 	############### setting/updating prev and next for all affected nodes ################
 
 	#logic explained in pic from 7/5/18
@@ -444,6 +440,25 @@ while bad_edges: #run as long as bad_edges is not empty
 		insert_left.next = searched_nodes[1]
 	searched_nodes[-2].next = other_node
 	other_node.prev = searched_nodes[-2]
+
+
+	chunk_node = searched_nodes[1]
+	while chunk_node is not other_node:
+		edges = chunk_node.get_edges()
+		for edge in edges:
+			if edge.weight == -10:
+				edge_list.add(edge)
+		chunk_node = chunk_node.next
+
+
+	edge_list.update(edges_to_remove)
+	b_e_temp_set = set(bad_edges)
+	b_e_temp_set.difference_update(edge_list) #anything in edge_list that's also in b_e will be removed from b_e
+	bad_edges = list(b_e_temp_set)
+
+	#leaving this line in so the script will give consistent results; may allow user to toggle this in later builds
+	bad_edges.sort( key = lambda e : e.edge_low(e.node1) ) #adding to make this stable/make the overall algorithm non-deterministic
+
 
 	#update $scaffolds
 	if searched_nodes[0] is None:

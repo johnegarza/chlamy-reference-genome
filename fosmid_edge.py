@@ -49,6 +49,13 @@ class Edge:
 		else:
 			assert (1==2)
 		'''
+	def destroy(self):
+		self.node1.remove_edge(self)
+		self.node2.remove_edge(self)
+		self.asm1 = None #to make this explicitly throw errors if I accidentally leave a reference to this edge and try to access it later
+		self.asm2 = None
+		self.weight = None
+
 	def move_CL(self, node, original_lo):
 		if node is self.node1:
 
