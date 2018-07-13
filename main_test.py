@@ -626,7 +626,7 @@ print tracker1, tracker2
 if placement:
 	print("WE DID IT")
 
-	with open("placed.txt", "w") as o_f:
+	with open("placed2.txt", "w") as o_f:
 		for head in scaffolds:
 			while head is not None:
 				o_f.write(str(head))
@@ -635,7 +635,7 @@ if placement:
 
 			o_f.write("\n")
 
-	with open("placed.fasta", "w") as fasta:
+	with open("placed2.fasta", "w") as fasta:
 		total = str(len(scaffolds))
 		for num, head in enumerate(scaffolds):
 			print(str(num) + "/" + total)
