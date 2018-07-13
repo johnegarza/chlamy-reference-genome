@@ -296,6 +296,7 @@ def find_chunk_region(s_e, b_n, o_n):
 
 tracker1 = 0
 tracker2 = 0
+placement = False
 
 while bad_edges: #run as long as bad_edges is not empty
 
@@ -338,6 +339,7 @@ while bad_edges: #run as long as bad_edges is not empty
 	region_hi = region[2]
 	edge_list = region[3]
 	assert(len(searched_nodes) > 2)
+	print(len(searched_nodes) - 2)
 	left_node_exists = region_lo - searched_nodes[1].asm.low() > 1
 	right_node_exists = region_hi - searched_nodes[-2].asm.high() > 1
 
@@ -527,7 +529,8 @@ while bad_edges: #run as long as bad_edges is not empty
 	if searched_nodes[0] is None:
 		if searched_nodes[-1] is None and not left_node_exists and not right_node_exists:
 			#entire scaffold was placed within another
-			del scaffolds[searched_nodes[1]]
+			scaffolds.remove(searched_nodes[1])
+			placement = True
 		else:
 			#remove old head/add new one
 			for index, head in enumerate(scaffolds):
@@ -620,7 +623,8 @@ while bad_edges: #run as long as bad_edges is not empty
 
 
 print tracker1, tracker2
-
+if placement:
+	print("WE DID IT")
 
 
 
