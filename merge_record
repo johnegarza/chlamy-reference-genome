@@ -1,0 +1,102 @@
+john@john-Lenovo-U31-70:~/Desktop/BAC_Fosmid_Data/graph$ git branch
+* develop
+  master
+john@john-Lenovo-U31-70:~/Desktop/BAC_Fosmid_Data/graph$ git checkout master
+Switched to branch 'master'
+Your branch is up-to-date with 'origin/master'.
+john@john-Lenovo-U31-70:~/Desktop/BAC_Fosmid_Data/graph$ git merge develop
+Removing mapper_helper.pyc
+Removing linked_nodes.pkl
+Auto-merging htcf_data/out.1delta
+Removing graph.txt
+Auto-merging full_delta_ends.txt
+Removing fosmid_pair_generation/indexed_pairs.txt
+Removing fosmid_edge.pyc
+Removing block_node.pyc
+Removing bleh.py
+Merge made by the 'recursive' strategy.
+ .gitignore                               |      3 +
+ assembly.fasta.fai                       |     62 +
+ bleh.py                                  |     12 -
+ block_node.py                            |    168 +-
+ block_node.pyc                           |    Bin 1004 -> 0 bytes
+ contig_loc.py                            |    116 +
+ delta_aligns.tsv                         |  63364 +++++++++++++++++++++++++++++
+ delta_mapped_ends2.txt                   |  56097 ++++++++++++++++++++++++++
+ delta_parser.py                          |    160 +-
+ delta_to_alignments.py                   |    155 +
+ end_dup_remover.py                       |     27 +
+ file origins                             |     34 +
+ filter_tester.txt                        |      2 +
+ fosmid_edge.py                           |    200 +-
+ fosmid_edge.pyc                          |    Bin 1378 -> 0 bytes
+ fosmid_pair_generation/end_indexer.py    |     24 +-
+ fosmid_pair_generation/index.sbatch      |      6 +
+ fosmid_pair_generation/indexed_pairs.txt |  64487 -----------------------------
+ mapped_coords.txt => full_delta_ends.txt | 116671 ++++++++++++++++++++++++++---------------------------
+ full_node_list.txt                       |   6237 +++
+ full_unique_mapped_ends.txt              |  29019 +++++++++++++
+ graph.txt                                |  53018 ------------------------
+ htcf_data/README                         |      1 +
+ htcf_data/node_list.tsv                  |   3283 ++
+ out.1delta => htcf_data/out.1delta       | 194673 ++++++++++++++++++++++++++++++++++++++++++++--------------------------------------------
+ htcf_data/out.filter.coords.parse.tab    |   3286 ++
+ indexed_ends.txt                         |  64022 +++++++++++++++++++++++++++++
+ insanity.py                              |    643 +
+ linked_nodes.pkl                         |    Bin 15141 -> 0 bytes
+ main.py                                  |    666 +
+ main_test.py                             |    667 +
+ mapper_helper.py                         |    113 +-
+ mapper_helper.pyc                        |    Bin 3026 -> 0 bytes
+ missing_node_generator.py                |     67 +
+ node_list_generator.py                   |    473 +-
+ node_list_indexed.tsv                    |  64022 +++++++++++++++++++++++++++++
+ og.txt                                   |   3375 ++
+ output.txt                               |   8293 ++++
+ placed.txt                               |   6730 ++++
+ placed2.txt                              |   6736 ++++
+ test.py                                  |      9 +
+ unique_mapped_ends2.txt                  |  28758 +++++++++++++
+ 42 files changed, 501467 insertions(+), 274212 deletions(-)
+ create mode 100644 .gitignore
+ create mode 100644 assembly.fasta.fai
+ delete mode 100644 bleh.py
+ delete mode 100644 block_node.pyc
+ create mode 100644 contig_loc.py
+ create mode 100644 delta_aligns.tsv
+ create mode 100644 delta_mapped_ends2.txt
+ create mode 100644 delta_to_alignments.py
+ create mode 100644 end_dup_remover.py
+ create mode 100644 file origins
+ create mode 100644 filter_tester.txt
+ delete mode 100644 fosmid_edge.pyc
+ create mode 100644 fosmid_pair_generation/index.sbatch
+ delete mode 100644 fosmid_pair_generation/indexed_pairs.txt
+ rename mapped_coords.txt => full_delta_ends.txt (55%)
+ create mode 100644 full_node_list.txt
+ create mode 100644 full_unique_mapped_ends.txt
+ delete mode 100644 graph.txt
+ create mode 100644 htcf_data/README
+ create mode 100644 htcf_data/node_list.tsv
+ rename out.1delta => htcf_data/out.1delta (65%)
+ create mode 100644 htcf_data/out.filter.coords.parse.tab
+ create mode 100644 indexed_ends.txt
+ create mode 100644 insanity.py
+ delete mode 100644 linked_nodes.pkl
+ create mode 100644 main.py
+ create mode 100644 main_test.py
+ delete mode 100644 mapper_helper.pyc
+ create mode 100644 missing_node_generator.py
+ create mode 100644 node_list_indexed.tsv
+ create mode 100644 og.txt
+ create mode 100644 output.txt
+ create mode 100644 placed.txt
+ create mode 100644 placed2.txt
+ create mode 100644 test.py
+ create mode 100644 unique_mapped_ends2.txt
+john@john-Lenovo-U31-70:~/Desktop/BAC_Fosmid_Data/graph$ git status
+On branch master
+Your branch is ahead of 'origin/master' by 127 commits.
+  (use "git push" to publish your local commits)
+nothing to commit, working directory clean
+john@john-Lenovo-U31-70:~/Desktop/BAC_Fosmid_Data/graph$
