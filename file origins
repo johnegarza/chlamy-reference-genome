@@ -1,0 +1,34 @@
+-rwxrwxrwx 1 john john     3091 Jul  3  2017 assembly.fasta.fai			a
+-rw-rw-r-- 1 john john     4949 Jun 27 18:35 block_node.py			Node object class, used in main/main_test.py
+-rw-rw-r-- 1 john john     3646 Jul  3 17:29 contig_loc.py			ContigLocation object class, used in main/main_test.py
+-rw-rw-r-- 1 john john  5012101 Jun  1 12:56 delta_aligns.tsv			a
+-rw-rw-r-- 1 john john 10062493 Jun 21 17:16 delta_mapped_ends2.txt		a
+-rw-rw-r-- 1 john john     9341 Jun 21 17:02 delta_parser.py			a
+-rw-rw-r-- 1 john john     5067 Jun  1 12:56 delta_to_alignments.py		a
+-rw-rw-r-- 1 john john      545 Jun 14 16:59 end_dup_remover.py			a
+-rw-rw-r-- 1 john john      368 Jun 14 14:43 filter_tester.txt			a
+-rw-rw-r-- 1 john john     5108 Jul 13 13:56 fosmid_edge.py			Edge object class, used in main/main_test.py
+drwxr-xr-x 2 john john     4096 Jun 27 13:29 fosmid_pair_generation		a
+-rw-rw-r-- 1 john john 10170296 Jun 27 13:29 full_delta_ends.txt		python delta_parser.py ./htcf_data/out.1delta indexed_ends.txt full_node_list.txt > full_delta_ends.txt
+-rw-rw-r-- 1 john john   491061 Jun 27 10:39 full_node_list.txt			a
+-rw-rw-r-- 1 john john  5213766 Jun 27 13:29 full_unique_mapped_ends.txt	python end_dup_remover.py full_delta_ends.txt > full_unique_mapped_ends.txt
+-rw-r--r-- 1 john john     2154 Oct 10  2017 graph_generator.py			a
+drwxrwxr-x 2 john john     4096 Jun 30 01:32 htcf_data				a
+-rw-rw-r-- 1 john john  5854548 Jun 27 13:29 indexed_ends.txt			python end_indexer.py ./fosmid_pair_generation/fosmid_pairs.txt
+
+-rw-rw-r-- 1 john john    22320 Jul 13 11:28 insanity.py			a
+-rw-rw-r-- 1 john john    22102 Jul  3 15:58 main.py				a
+-rw-rw-r-- 1 john john    23519 Jul 13 14:31 main_test.py			a
+-rw-rw-r-- 1 john john     7914 Jun 12 15:34 mapper_helper.py			a
+-rw-rw-r-- 1 john john     2056 Jun 27 10:32 missing_node_generator.py		a
+-rw-r--r-- 1 john john    16678 Jun 13 17:30 node_list_generator.py		a
+-rw-rw-r-- 1 john john  5831447 Jun 11 10:18 node_list_indexed.tsv		a
+-rw-r--r-- 1 john john  2158745 Oct 10  2017 no_dup_indexed_pairs.txt		a
+-rwxrwxrwx 1 john john   254278 Jun 25 11:14 og.txt				a
+-rw-rw-r-- 1 john john   587020 Jun 29 16:38 output.txt				a
+-rw-rw-r-- 1 john john   469373 Jul 13 17:21 placed2.txt			a
+-rw-rw-r-- 1 john john   469405 Jul 13 17:21 placed.txt				a
+-rw-r--r-- 1 john john     2425 Feb 23 23:30 README.md				readme for github
+-rw-r--r-- 1 john john   239829 Oct 10  2017 tab_delim_results_numbered.csv	a
+-rw-rw-r-- 1 john john      271 Jun 22 19:11 test.py				a
+-rw-rw-r-- 1 john john  5157524 Jun 21 17:23 unique_mapped_ends2.txt		a

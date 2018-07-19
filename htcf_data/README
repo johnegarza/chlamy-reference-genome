@@ -1,0 +1,1 @@
+out.filter.coords.parse.tab was opened in excel, first 3 rows removed, sorted (with column A as the primary sort key and column B as the secondary), then numbers added in column I corresponding to line number to produce node_list.tsv

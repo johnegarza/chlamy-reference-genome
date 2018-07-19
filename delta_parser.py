@@ -9,10 +9,12 @@ parser = argparse.ArgumentParser(description='parses a delta file into a format 
 parser.add_argument('delta_file', metavar='*.delta', help='a delta file produced by nucmer')
 #TODO design/document a format for this fosmid file
 parser.add_argument('fosmids', metavar='fosmids.tsv', help = 'a fosmid paired end file')
+parser.add_argument('alignment_file', metavar='tab_delim_results', help='an alignment file from nucmer')
 args = parser.parse_args()
 
 delta_file = args.delta_file
 fosmid_file = args.fosmids
+block_file = args.alignment_file
 delta_regex = re.compile(r"^-?\d+$")
 
 with open(delta_file) as d_f:
@@ -54,21 +56,6 @@ with open(delta_file) as d_f:
 
 					mapped_tuple = ( q_start-temp_q[0] , q_start-temp_q[1] )
 					query_array[index] = mapped_tuple
-
-			#TODO most of the chunk between here and the next todo was for debugging purposes
-			#during development; this portion will be removed when the final script is complete
-			'''
-			for ref_algn in ref_array:
-				print(ref_algn, end=' ')
-			print("") #make a line break
-
-			for q_algn in query_array:
-				print(q_algn, end=' ')
-			print("") #another line break in anticipation of the next set of alignments
-
-#			print("seq end")
-			'''
-			#TODO after implementing the defaultdict of RefMappers, the above chunk of code will be removed
 
 			alignments[ref_name].update(ref_array, query_array, query_name)
 
@@ -154,32 +141,147 @@ for key in alignments:
 	print(str(alignments[key]))
 '''
 
+#for key in alignments:
+#	str(alignments[key])
+#os.system("pause")
+
+real_mapper = defaultdict(RefMapper)
+for key in alignments:
+	#for rm in alignments[key]:
+	for index, val in enumerate(alignments[key].query_names):
+		new_key = val
+		new_ref_coords = alignments[key].query_coords[index]
+		new_query_coords = alignments[key].ref_coords[index]
+		new_query_name = key
+		real_mapper[new_key].update(new_ref_coords, new_query_coords, new_query_name)
+
+
+'''
+print("scaf 32 aligns to")
+str(alignments["scaffold32_size125501_pilon"])
+print("chromosome 1 aligns to")
+str(real_mapper["chromosome_1"])
+'''	
+
 with open(fosmid_file) as f_f:
 	lines = f_f.readlines()
 	for index, line in enumerate(lines):
 		line = line.split("\t")
 
-		left_name = str(line[0])
+		left_ref = str(line[0])
 		left_end_start = int(line[1])
 		left_end_stop = int(line[2])
+		left_line = int(line[4])
 
-		right_name = str(line[5])
+		right_ref = str(line[5])
 		right_end_start = int(line[6])
 		right_end_stop = int(line[7])
+		right_line = int(line[9])
 
-		left_tuple = alignments[left_name].map(left_end_start, left_end_stop, index, 0)
-		right_tuple = alignments[right_name].map(right_end_start, right_end_stop, index, 1)
+		with open(block_file) as blocks:
+			block_data = blocks.readlines()
+			left_name = block_data[left_line - 1].split("\t")[3]
+			right_name = block_data[right_line - 1].split("\t")[3]
+			
+
+		'''
+		left_map_name = real_mapper[left_name].map(left_end_start, left_end_stop, index, 0)[3]
+		right_map_name = real_mapper[right_name].map(right_end_start, right_end_stop, index, 1)[3]
+		
+		left_tuple = alignments[left_map_name].map(left_end_start, left_end_stop, index, 0)
+		right_tuple = alignments[right_map_name].map(right_end_start, right_end_stop, index, 1)
+		'''
+
+		left_tuple = real_mapper[left_name].map(left_end_start, left_end_stop, index, 0)
+		right_tuple = real_mapper[right_name].map(right_end_start, right_end_stop, index, 1)
 
 		if( left_tuple[0] and right_tuple[0] ):
-			ans = []
-			ans.append(left_name)
-			ans.extend( [str(x) for x in left_tuple[1:]] )
-			ans.append( str(line[3]) )
-			ans.append( str(line[4]) )
-			ans.append( right_name )
-			ans.extend( [str(x) for x in right_tuple[1:]] )
-			ans.append( str(line[8]) )
-			ans.append( str(line[9]) )
-			print("\t".join(ans).strip())
+
+			
+			#with the block at the end removed, the following block does nothing
+			
+			#TODO min/max might only be needed on lines 197 and 198- double check and remove
+			#the 2 min and 2 max calls directly below if this is the case
+			end1_scaf = str(left_tuple[3])
+			end1_start = min( int(left_tuple[4]), int(left_tuple[5]) )
+			end1_stop = max( int(left_tuple[4]), int(left_tuple[5]) )
+			end2_scaf = str(right_tuple[3])
+			end2_start = min( int(right_tuple[4]), int(right_tuple[5]) )
+			end2_stop = max( int(right_tuple[4]), int(right_tuple[5]) )
+
+			with open(block_file) as blocks:
+				block_data = csv.reader(blocks, delimiter="\t")
+			
+				end1_line = 0
+				end2_line = 0
+
+				for block in block_data:
+
+					chrom = str(block[0])
+					start = min( int(block[1]), int(block[2]) )
+					stop = max( int(block[1]), int(block[2]) )
+					file_line = int(block[8])
+
+					if ( (end1_scaf == chrom) and (end1_start >= start) and (end1_stop <= stop) ):
+						end1_line = file_line
+
+					if ( (end2_scaf == chrom) and (end2_start >= start) and (end2_stop <= stop) ):
+						end2_line = file_line
+
+
+			if ( (end1_line != 0) and (end2_line != 0) ):
+
+				ans = []
+				ans.append(left_name)
+				ans.extend( [str(x) for x in left_tuple[1:]] )
+				ans.append( str(line[3]) ) #fosmid ID, VTP*
+				ans.append( str(end1_line) ) 
+				#ans.append(str(left_line))
+				ans.append( right_name )
+				ans.extend( [str(x) for x in right_tuple[1:]] )
+				ans.append( str(line[8]) ) #fosmid ID, VTP*
+				ans.append( str(end2_line) )
+				#ans.append(str(right_line))
+				print("\t".join(ans).strip())
+
+
+
+			#removing following section since node_list_indexed has the line data already
+			#however, the following code may produce slightly more accurate results- return to this when time TODO
+			'''
+			with open(block_file) as blocks:
+				block_data = csv.reader(blocks, delimiter="\t")
+			
+				end1_line = 0
+				end2_line = 0
+
+				for block in block_data:
+
+					chrom = str(block[3])
+					start = min( int(block[4]), int(block[5]) )
+					stop = max( int(block[4]), int(block[5]) )
+					file_line = int(block[8])
+
+					if ( (end1_scaf == chrom) and (end1_start >= start) and (end1_stop <= stop) ):
+						end1_line = file_line
+
+					if ( (end2_scaf == chrom) and (end2_start >= start) and (end2_stop <= stop) ):
+						end2_line = file_line
+
+
+			if ( (end1_line != 0) and (end2_line != 0) ):
+			###
+
+				ans = []
+				ans.append(left_name)
+				ans.extend( [str(x) for x in left_tuple[1:]] )
+				ans.append( str(line[3]) ) #fosmid ID, VTP*
+				ans.append( str(end1_line) ) 
+				ans.append( right_name )
+				ans.extend( [str(x) for x in right_tuple[1:]] )
+				ans.append( str(line[7].strip()) ) #fosmid ID, VTP*
+				ans.append( str(end2_line) )
+				print("\t".join(ans).strip())
+			'''
 
 
